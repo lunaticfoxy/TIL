@@ -1,7 +1,7 @@
 Hive에서 텍스트 포맷으로 테이블 구성하기
 
 
-'''sql
+```sql
 create table text_table_name
 row format delimited fields terminated by ','
 lines terminated by '\n'
@@ -9,7 +9,7 @@ stored as textfile
 as
 select * from source_table_name
 ;
-'''
+```
 
 텍스트 포맷 테이블은 어떤 경우에 용이한가
 - 내가 직접 테이블 파일을 볼 필요가 있을때
