@@ -47,7 +47,7 @@ SELECT coalesce(null,'a',null,'b');
 - C의 switch-case 문과 동일하다 생각하면 됨
 - 여러 값 중 주어진 값과 동일한 값을 찾고 해당 값에 매칭되는 결과 리턴
   - 주어진 값을 인덱스로 사용하는 맵
-- decode(<expr>, <search1>, <result1>, … <search N>, <result N>, <default>) 형태
+- decode(expr, search1, result1, … , search N, result N, default) 형태
 - 예시
 ```sql
 SELECT
