@@ -48,7 +48,6 @@
       - encoder에서 decoder로 전달
       - encoder의 값을 decoder로 얼마나 반영할 것인가
     - encoder self-attention
-      - 모든 
+      - encoder의 한 레이어 내에서 일어나는 self-attention
     - masked decoder self-attention
-    - encoder-decoder ㅇattention
-    - encoder-decoderattention
+      - mask를
