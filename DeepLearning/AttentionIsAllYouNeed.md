@@ -43,6 +43,7 @@
         - Convolution에 비해 메모리도 매우 적게 먹으므로 확실한 병렬화 가능
         - 모든 시퀀스가 한 레이어 안에서 연결됨
         - 모델 자체의 표현력도 더 높다(는 주장)
+        
   - 논문 내 사용되는 attention 종류
     - encoder-decoder attention
       - encoder에서 decoder로 전달
@@ -52,6 +53,7 @@
     - masked decoder self-attention
       - decoder에서만 사용되는 attention
       - mask를 줘서 이전 출력값만 사용하게 함
+      
   - Dot-Product Attention
     - 용어 정리
       - Q: query vector (입력된 벡터)
@@ -68,6 +70,7 @@
       - 근데 현실적으로 자연어는 sparse해서 저 레이어 학습시키는거만해도 일
       - 그리고 속도도 당연히 dot-product가 빠르지
     - 그림에 있는 Mask는 Decoder에서만 사용되는 것으로 자기보다 뒤쪽에 나타나는 Attention은 통과시키지 않는다 대충 이런 구조
+    
   - Multi-Head Attention
     - Self-Attention과 Convolution을 비교해보자
       - convolution은 채널에 따라 다른 정보가 매핑됨
@@ -77,10 +80,12 @@
       - 한 벡터를 쪼개서 각각 attention 한다음 concat
       - 각각의 조각이 convolution의 채널과 유사한 형태가 될것이라 기대
     - 개념상으로는 쪼개는 내용 없이 여러번 attention을 준 뒤 이를 (어떻게든) 합치는 방식이지만 실제로 구현시에는 모두 쪼개서 구현
+    
   - Positional Embedding
     - 시퀀스 위치 정보가 없으니깐 강제로 넣자
     - 대충 sin-cos 그래프 비슷한 형태로 넣어서 포지션별로 다른 값이 들어가게 하자
     - 첨언 - 이후에 추가된 모델들은 그냥 정수로 1,2,3,4 식으로 증가시켜줌
+    
   - Transformer 모델
     - 사실상 전체 모델이라 생각하면 됨
     - Encoder-Decoder 구조
@@ -89,4 +94,18 @@
     - Residual Connection이 들어가는 경우도 있음 (선택사항)
     - Encoder 동작
       - 입력 문장 전체를 인코더에 입력
-    
+      - 입력된 값을 복사해서 Q, K, V에 할당
+      - Q, K, V로 attention
+      - attention 결과를 feed-forward
+      - 위 과정을 레이어 수만큼 반복
+      - 리턴값을 embedding vector로 사용
+    - Decoder 동작
+      - start 시그널을 디코더에 입력
+      - 마스크된 값을 Q, K, V로 주고 1차 attention 수행
+      - embedding vector를 q, k, 1차 attention 값을 v로 주고 2차 attention 수행
+      - 2차 attention 결과를 feed-forward
+      - 위의 과정을 레이어 수만큼 반복
+      - 출력값을 사용
+      - 이후 다음 출력값부터는 start 시그널 대신 이전 출력값 입력 + 
+
+  - Multi-Head Attentio
