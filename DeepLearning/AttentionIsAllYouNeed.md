@@ -50,4 +50,43 @@
     - encoder self-attention
       - encoder의 한 레이어 내에서 일어나는 self-attention
     - masked decoder self-attention
-      - mask를
+      - decoder에서만 사용되는 attention
+      - mask를 줘서 이전 출력값만 사용하게 함
+  - Dot-Product Attention
+    - 용어 정리
+      - Q: query vector (입력된 벡터)
+      - K: key memory (키 벡터 => 입력된 벡터와 유사도 계산)
+      - V: value memory (해당 키에 저장된 값)
+    - Attention을 들어온 Query와 가장 유사한 Key를 찾아 여기 저장된 Value를 리턴하는 Map이라고 생각하자
+    - 중간과정 생략하고 대충 A(Q,K,V) = softmax(QK^T)V 가 됨 => 여기까지가 Dot-Product Attention의 개념
+    - 근데 QK^T가 너무 커져버리면 softmax 값이 튀겠지?
+      - 벡터 크기의 루트로 softmax 내부의 절대값을 줄여주자
+      - 이를 Scaled Dot-Product Attention이라 부름
+    - 기존 Attention이랑 차이점?
+      - 기존의 각 값마다 Attention을 계산하기 위해 별개의 레이어를 만드는 방식을 Additive Attention 이라 부름
+      - 당연히 표현력은 기존 방식이 좋음 (레이어 하나를 더 거치니깐)
+      - 근데 현실적으로 자연어는 sparse해서 저 레이어 학습시키는거만해도 일
+      - 그리고 속도도 당연히 dot-product가 빠르지
+    - 그림에 있는 Mask는 Decoder에서만 사용되는 것으로 자기보다 뒤쪽에 나타나는 Attention은 통과시키지 않는다 대충 이런 구조
+  - Multi-Head Attention
+    - Self-Attention과 Convolution을 비교해보자
+      - convolution은 채널에 따라 다른 정보가 매핑됨
+      - self-attention은 사실 그냥 가중합이라 그런거 없음
+      - 당연히 표현력이 떨어지겠지
+    - 그럼 self-attention도 쪼개자
+      - 한 벡터를 쪼개서 각각 attention 한다음 concat
+      - 각각의 조각이 convolution의 채널과 유사한 형태가 될것이라 기대
+    - 개념상으로는 쪼개는 내용 없이 여러번 attention을 준 뒤 이를 (어떻게든) 합치는 방식이지만 실제로 구현시에는 모두 쪼개서 구현
+  - Positional Embedding
+    - 시퀀스 위치 정보가 없으니깐 강제로 넣자
+    - 대충 sin-cos 그래프 비슷한 형태로 넣어서 포지션별로 다른 값이 들어가게 하자
+    - 첨언 - 이후에 추가된 모델들은 그냥 정수로 1,2,3,4 식으로 증가시켜줌
+  - Transformer 모델
+    - 사실상 전체 모델이라 생각하면 됨
+    - Encoder-Decoder 구조
+      - 두 부분이 다른점은 Decoder에는 Encoder의 값을 받기 위한 Attention 부분이 하나 더 들어간다 정도
+      - 각각 6개 레이어 사용
+    - Residual Connection이 들어가는 경우도 있음 (선택사항)
+    - Encoder 동작
+      - 입력 문장 전체를 인코더에 입력
+    
