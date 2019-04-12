@@ -42,3 +42,8 @@
     - 람다값은 랩실 애들이 갈아넣어졌겠지
 - Triplet sampling
   - random sampling 시 top 50에 있는 것만 사용해서 학습 속도를 향상
+
+
+#### 특이사항
+- object detection은 하지 않음
+- bounding box에서 찾아진 이미지에다만 적용
