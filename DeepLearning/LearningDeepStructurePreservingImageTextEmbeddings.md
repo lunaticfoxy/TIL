@@ -29,7 +29,7 @@
       - 이후 PCA를 통해 6k 벡터로 줄임
     - Fisher Vector에서 제안한걸 다 안쓰고 HGLMM만 사용
 - Loss Function => 주 Contribution
-  - 컨셉 자체는 직관적
+  - 컨셉 자체는 직관적 (Word2Vec과 유사한 Ranking Loss)
   - d(x_i, y_j) + m < d(x_i, y_k)
     - i, j의 거리가 i, k의 거리보다 m 이상 가까워야 한다
     - j는 i와 매칭되는 값, k는 매칭이 안되는 값
@@ -50,3 +50,7 @@
 - Negative Mining
   - bounding box에서 잘못 찾아진 값을 Negative Sample로 사용
   - 그 결과 성능 향상
+
+
+#### 첨언
+- 15년 논문이니 이후에 여기 나온 Loss에 다른 텍스트 벡터를 적용한 모델은 없으려나
