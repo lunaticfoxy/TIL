@@ -25,7 +25,7 @@
     - Fisher Vector 사용
       - 원래 이미지를 기반으로 추출하는 방법
       - 여기서는 자연어 처리에 적용
-    - 300차원의 word vector에 30개의 센터가 있어서 300*30*2 = 18k 벡터 추출
+    - 300차원의 word vector에 30개의 센터가 있어서 300 * 30 * 2 = 18k 벡터 추출
       - 이후 PCA를 통해 6k 벡터로 줄임
     - Fisher Vector에서 제안한걸 다 안쓰고 HGLMM만 사용
 - Loss Function => 주 Contribution
