@@ -45,8 +45,8 @@
 
 
 #### 특이사항
-- object detection은 하지 않음
-- bounding box에서 찾아진 이미지에다만 적용
+- object detection은 하지 않음 (기존 R-CNN을 그냥 앞에 붙임)
+  - 논문에서 제안한 부분은 bounding box에서 찾아진 이미지에다만 적용
 - Negative Mining
   - bounding box에서 잘못 찾아진 값을 Negative Sample로 사용
   - 그 결과 성능 향상
