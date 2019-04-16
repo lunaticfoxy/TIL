@@ -17,6 +17,6 @@ def maxVal[T](arr:Array[T]):T = {
     maxValue
 }
 ```
-  - 여러개가 쓰고 싶으면?
+- 여러개가 쓰고 싶으면?
   - def fName[T1, T2, T3, T4, T5](val1:T1, val2:T2, arrVal3:T3, mapVal4:Map[T4]=>T5)
   - T, T1, T2, ... , T19까지 사전 정의되어 있음
