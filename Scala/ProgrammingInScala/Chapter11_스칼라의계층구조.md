@@ -1,0 +1,48 @@
+#### 스칼라의 계층 구조
+- 개요
+  - 스칼라 클래스의 전반적인 계층 구조
+  - 슈퍼 클래스 Any, 매 바닥의 Nothing, Null 등 존재
+
+
+##### 11.1 스칼라의 클래스 계층구조
+- 다음 계층 구조지님
+  - Any: 모든 클래스의 슈퍼클래스
+    - AnyVal: 모든 기본 정의 값 클래스의 슈퍼 클래스
+      - Unit: 자바의 void와 유사
+      - Boolean
+      - Byte, Short: Byte는 Short로 변환 가능, Short는 Int로 변환 가능
+      - Char: Char는 Int로 변환 가능
+      - Int, Long, Float, Double: Int->Long->Float->Double로 변환 가능
+    - AnyRef: AnyVal에 속하지 않는 모든 클래스의 슈퍼클래스
+      - String
+      - ScalaObject: String, 몇몇 자바클래스를 제외한 모든 AnyRef 하위 클래스의 슈퍼 클래스
+        - Interable
+          - Seq
+            - List
+        - ...
+          - ...
+            - ...
+              - 모든 클래스
+                - Null: AnyRef 클래스에 속한 모든 클래스으 서브 클래스
+                  - Nothing: 모든 클래스의 서브 클래스
+- 모든 클래스가 Any의 특성을 지님
+  - ==, !=, equals 의 비교 연산자가 Any에 구현
+    - == 와 != 는 finalㄹ 구현되어 있어 오버라이딩 불가능
+    - 하지만 equals 를 오버라이딩 하여 == 연산자와 != 연산자의 동작을 변경시킬 수 있음
+  - ##, hashCode, toString 또한 Any에 구성되어 있음
+- AnyVal 클래스
+  - 스칼라에서 기본으로 제공하느 모든 값의 슈퍼클래스
+  - 원하면 AnyVal을 상속받아 추가 정의 가능
+  - new를 사용해 인스턴스화 불가능
+    - 모든 값 클래스 추상클래스이면서 final 클래스임
+    - 추상클래스라 new가 불가능하면서 오버라이딩이 불가능
+  - 일반적인 산술 연산자와 논리연산자를 기본을 제공
+    - +, *, ||, && 등
+  - 암시적 변환이 가능
+    - 서로간의 상속관계는 없음
+    - 암시적 변환 대상이 되는 클래스에 변환 코드가 존재
+      - ex) Int 클래스의 min, max, abs, until, to 등은 사실 scala.runtime.RichInt 클래스에 들어있으며, RichInt 클래스 내부에 Int클래스의 암시적 변환 코드가 존재    
+- AnyRef 클래스
+  - 모든 참조 클래스 (reference class)의 슈퍼 클래스
+  - java.lang.Object와 동격
+    - 모든 자바 클래스는 AnyRef를 슈퍼 클래스로 삼음
