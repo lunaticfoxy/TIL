@@ -143,3 +143,29 @@ class Dollars(val amount:Int) extends AnyVal {
 def title(text:String, anchor:String, style:String): String = 
     s"<a id='$anchor'><h1 class='$style'>$text</h1></a>"
 ```
+    - 문자열이 4개나 사용된 코드
+      - 기술적으로는 "강하게 타입이 지정된 코드"
+      - 하지만 다른 타입에 대한 문자열을 써도 컴파일러가 감지 불가능
+```scala
+title("chap:vcls", "bold", "Value Clases")   // <a id='bold'><h1 class='Vale Classes'>>chap:vcls</h1></a>
+```
+    - 작은 타입 (tiny type)을 정의하면 컴파일러가 더 많은 도움을 줄 수 있음
+```scala
+class Anchor(val value:String) extends AnyVal
+class Style(val value:String) extends AnyVal
+class Text(val value:String) extends AnyVal
+class Html(val value:String) extends AnyVal
+
+def title(text:Text, anchor:Anchor, style:Style):Html = {
+    new Html(
+        s"<a id='${anchor.value}'>" + 
+            s"<h1 class='${style.value}'>" +
+            text.value +
+            "</h1>" +
+        "</a>"
+    )
+}
+
+title(new Text("Value Classes"), new Anchor("chap:vcls"), new Style("bold"))  // 정상 동작
+title(new Anchor("chap:vcls"), new Style("bold"), new Text("Value Classes"))  // 오류 발생
+```
