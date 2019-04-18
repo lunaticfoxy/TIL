@@ -149,7 +149,9 @@ def title(text:String, anchor:String, style:String): String =
 ```scala
 title("chap:vcls", "bold", "Value Clases")   // <a id='bold'><h1 class='Vale Classes'>>chap:vcls</h1></a>
 ```
+
     - 작은 타입 (tiny type)을 정의하면 컴파일러가 더 많은 도움을 줄 수 있음
+    
 ```scala
 class Anchor(val value:String) extends AnyVal
 class Style(val value:String) extends AnyVal
