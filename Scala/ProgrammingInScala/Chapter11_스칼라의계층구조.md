@@ -73,6 +73,7 @@ System.out.println(isEqual2(421, 421));   // false
 ```
     - auto-boxing 전 결과와 boxing 후에 연산 결과가 다름
     - 값에 대해서는 실제 값 비교, 객체에 대해서는 주소 비교로 연산이 다르므로 발생하는 문제
+    
   - 스칼라에서의 값 비교
 ```scala
 def isEqual(x:Int, y:Int) = x == y
