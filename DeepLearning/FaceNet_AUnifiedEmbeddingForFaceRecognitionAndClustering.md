@@ -49,5 +49,7 @@
 - Dataset, Pre-processing is Very Very Improtant
 
 
-
+#### 추가사항
+- 이후 확실한 얼굴 인식 부분은 거의 진행되지 않음 => 특별한 경우의 얼굴 인식 연구로 넘어감
+- 
 
