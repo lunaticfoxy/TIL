@@ -27,9 +27,20 @@
 
 ##### experiments.py
 - 모델별로 돌아가면서 cifar10, cifar100, fashion-mnist, cats-vs-dogs 에 대해 분류 수행
-- 이후 어떻게 탐지하나...
+- multiclass_experiments의 비교 버전
+- 단 코드 현재 미동작 (데이터 미존재)
 
 ##### institution_experiments.py
 - 하나의 클래스를 transform 할때마다 다른 class로 만들어서 학습시키고
 - 탐지시에는 각 클래스별로 출력된 확률을 평균내서 스코어 계산
-  - 정확히 어떻게 하는건지는 확인 필요
+  - 각 이미지마다 8개의 클래스 생성
+    - 4방향 회전
+    - 대칭 이동 후 4방향 회전
+- 스코어의 평균은 normal 일 경우 1에 가깝게, abnormal일경우 0에 가깝게 나타남
+  - 이를 threshold를 기준으로 normal, abnormal 분류
+  - 해당 내용은 없으므로 직접 score의 분포를 확인해보면 됨
+- 평균 대신 Dirichlet 분포를 계산해서 하면 더 잘나온다고 함 (확인은 해보지 않음)
+
+##### multiclass_experimment.py
+- 한 클래스를 정상으로 두고 다른 클래스들을 비정상으로 탐지하는 방법
+- 코드 자체는 미동작 (데이터 포맷 등에 대해 제대로 설명되어있지 않음)
