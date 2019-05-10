@@ -8,7 +8,7 @@
 
 ##### 폴더 구조
 - experiments.py: 가장 기본 실험 - 클래스를 1개 주고 해당 클래스 여부를 yes, no로 평가
-- institution_experiments.py: 1개 클래스를 주고, 타 1개 클래스를 anomaly로 구성하여 평가
+- institution_experiments.py: 1개 클래스를 주고, 타 1개 클래스를 anomal로 구성하여 평가
 - multiclass_experimment.py: multi-class 분류 방법 실험 (cifar10, tinyimagenet)
 - transformations.py: 이미지 변환을 위한 함수들 저장
 - utils.py
@@ -36,8 +36,8 @@
   - 각 이미지마다 8개의 클래스 생성
     - 4방향 회전
     - 대칭 이동 후 4방향 회전
-- 스코어의 평균은 normal 일 경우 1에 가깝게, abnormal일경우 0에 가깝게 나타남
-  - 이를 threshold를 기준으로 normal, abnormal 분류
+- 스코어의 평균은 normal 일 경우 1에 가깝게, anomal일경우 0에 가깝게 나타남
+  - 이를 threshold를 기준으로 normal, anomal 분류
   - 해당 내용은 없으므로 직접 score의 분포를 확인해보면 됨
 - 평균 대신 Dirichlet 분포를 계산해서 하면 더 잘나온다고 함 (확인은 해보지 않음)
 
