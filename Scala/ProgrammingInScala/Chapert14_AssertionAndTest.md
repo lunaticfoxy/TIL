@@ -60,10 +60,44 @@ private def widen(w: Int): Element = {
     val right = elem(' ', w - width - left.width, height)
     left beside this beside right
   } ensuring (w <= _.width) // 리턴값 _ 의 원소 width가 w <= _.width 를 만족하는가?
-                            // 만족함ㄴㄷ
-  } ensuring (w <= _.width) // 리턴값 _ 의 원소 width가 w <= _.width 를 만족하ㅎ
-  } ensuring (w <= _.width) // 리턴값 _ 의 원소 width가 w <= _.width 를 만족하는가?
+                            // 만족한다면 _ 리턴, 아니면 에러 발생
 }
 ```
 
-- JVM에서 명령형 옵션을 켜서
+- JVM에서 명령형 옵션 통해 assertion과 ensuring On-Off 가능
+
+
+#### 14.2 스칼라에서 테스트하기
+- 스칼라테스트 (ScalaTest)
+  - 가장 유연한(?) 스칼라 테스트 프레임워크
+  - 쉽게 커스터마이즈 가능 (= 어떠한 테스트 스타일로도 사용가능)
+
+- 스칼라테스트를 통한 테스트
+  - 스위트 (Suite): 테스트 집합
+    - Suite는 트레이트이며 테스트를 실행하기 위한 생명주기 (life cycle) 메소드들을 선언
+    - 테스트 방식에 따라 이 메소드들이 오버라이드 됨
+  - Suite의 확장 및 오버라이드를 위해 스타일 트레이트 (style trait) 지원
+  - 특별한 테스트 요구를 해결하기 위해(?) 생명 주기 메소드를 오버라이드 하는 믹스인 트레이트 (mixin trait) 지원
+    - 이후 별도 설명은 없는데 여러 트레이트를 연속해서 정의할 수 있게 하는게 믹스인 이니 테스트의 조합이 가능하다는 것으로 이해
+
+- 예시) FunSuite
+  - Fun: function의 약자
+  - 내부에 test 함수 사전 정의
+    - 첫번째 괄호 인자: 테스트 이름
+    - 두번째 괄호 인자: by name-parameter 형태의 테스트 로직
+  - 실행시 execute 함수 실행
+```
+import org.scalatest.FunSuite
+import Element.elem   // 위에서 언급된 객체
+
+class ElementSuite extends FunSuite {
+  test("elem result should have passed width") {
+    val ele = elem('x', 2, 3) // x를 가로 2개짜리 3줄로 채우겠다는 이야기
+    assert(ele.width == 2)
+  }
+}
+
+(new ElementSuite).execute()
+```
+
+#### 14.3 충분한 정보를 
