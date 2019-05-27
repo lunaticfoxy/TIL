@@ -219,6 +219,94 @@ class ElementSpec extends FlatSpec with Matchers {
   - Matchers 트레이트를 혼합하여 사용 가능
   - 자연어처럼 읽을 수 있는 단언문 작성 가능
   - 목적
-    - 개발자가 아닌 사람이 
-  - 목적코드를
-  - 목적
+    - 개발자가 아닌 사람이 코드를 보고 이해할 수 있게 만들자
+    - 결정권자 - 구현자 - 테스터가 의사소통을 쉽게 하기 위해 사용
+    - 로그로 뽑으면 바로 문서의 "스펙" 으로 사용 할 수 있음!!
+ 
+ ```scala
+import org.sepcs2._
+import Element.elem
+ 
+object ElementSpecification extends Specification {  // 위와 동일한 코드를 specs2라는 테스트 툴로 구현 할 경우
+  "A UnicormElement" should {
+    "have a width equal to the passed value" in {
+      val ele = elem('x', 2, 3)
+      ele.width must be_==(2)
+    }
+    "have a height equal to the passed value" in {
+      val ele = elem('x', 2, 3)
+      ele.height must be_==(3)
+    }
+    "throw an IAE if passed a negative width" in {
+      elem('x', -2, 3) must throwA[IllegalArgumentException]
+    }
+  }
+}
+
+
+import org.scalatest._
+class TVSetSpec extends FeatureSpec with GivenWhenThen {  // 피쳐의 변화에 따른 상황-사건-결과 단위 테스트 (Given-When-Then)
+  features("TV Power Button") {
+    // 피쳐 발생시에 대한 테스트 코드작성
+    
+    scenario("User press power button when TV is off") {
+      // 시나리오 시작에 대한 코드 작성
+      
+      Given("a TV set that is switched off")
+      // 주어진 상황에 대한 테스트 코드 작성
+      
+      When("the power button is pressed")
+      // 일어나는 사건에 대한 테스트 코드 작성
+      
+      Then("the TV should switch on")
+      // 사건의 결과로 발생날 테스트 코드 작성 (아직 미구현 상태면 pending 입력하면 알아서 pass)
+      pending
+    }
+  }
+}
+```
+
+
+#### 14.5 프로퍼티 기반 테스트
+- 스칼라체크 (ScalaCheck)
+  - 라카드 닐슨 (Rickard Nilsson) 이 작성 => 아무리봐도 리카드 닐슨인데...
+  - 각 프로퍼티에 대해 테스트 데이터 생성 후 프로퍼티를 지키는지 테스트 수행
+- whenever
+  - 2개의 인자를 받음
+  - 1번 인자가 true면 2번 인자도 true여야 테스트 통과 (1번 인자가 false면 테스트하지 않음)
+  - 테스트 실패시 TestFailtedException 발생
+
+```scala
+import org.scalatest.WordSpec
+import org.scalatest.prop.PropertyChecks
+import org.scalatest.MustMatchers._
+import Element.elem
+
+class ElementSpec extends WordSpec with PropertyChecks {
+  "elem result" must {                            // ele result는 반드시
+    "have passed width" in {                      // 다음 조건을 통과해야 한다
+      forAll { (w: Int) =>                        // - 모든 종류의 Int w에 대해
+        whenever (w > 0) {                        // - w가 0보다 크면
+          elem('x', w, 3).width must equal (w)    // - elem('x', w, 3).width == w 여야 한다
+        }
+      }
+    }
+  }
+}
+```
+
+
+#### 14.6 테스트 조직과 실행
+- 스칼라테스트에서는 스위트 안에 스위트를 포함시켜서 큰 테스트를 조직화 할 수 있음
+  - trait이므로 내부에서 test가 순차적으로 동작
+  - 상속받지 않아도 nestedSuites 메소드를 오버라이드하여 강제로 넣을 수도 있음
+- Runner
+  - 스칼라테스트의 Runner를 사용하면 자동으로 스위트 추가 가능
+    - 컴파일: scalac -cp scalatest.jar 스위트코드  
+    - 실행: scala -cp scalatest.jar org.scalatest.run 스위트객체
+  - 테스트 환경 정의 + 원하는 스위트 종류를 실행 시점에 조합해서 사용할 수 있음
+
+```bash
+scalac -cp scalatest.jar TVSetSpec.scala
+scala -cp scalatest.jar org.scalatest.run TVSetSpec
+```
