@@ -108,7 +108,14 @@ class ElementSuite extends FunSuite {
   - 첫번째 함수 인자: 기대하는 값 {1}
   - 두번째 함수 인자: 확인할 값 {2}
   - 실패시 "Expected {1}, but got {2}" 라는 에러 메시지 출력
-- assertThrows: 발생할 
+- assertThrows: 발생할 에러 종류를 지정하여 진행하는 테스트
+  - []내에 발생할것으로 예상되는 Exception 입력 {1}
+  - 이후 함수 인자로 테스트 코드
+  - 예상 Exception 발생시 일반적인 에러코드
+  - Exception이 발생하지 않거나 다른 종류의 Exception이 발생할 경우 TestFailedException 발생 {2}
+    - "Expected {1} to be thrown, but {2} was thrown" 라는 에러 메시지 출력
+  - intercept를 사용하면 예상된 에러 발생시 추가 처리 가능
+    - assertThrows와 동일하게 동작하되 예상된 에러 발생시 해당 Exception 객체가 리턴됨
 
 ```scala
 import DiagrammedAssertions._
@@ -125,6 +132,93 @@ assert(List(1, 2, 3).contains(4))
 assertResult(2) {  // ele.width == 2 인지 확인하고자 한다
   ele.width
 }                  // ele.width = 3 이라면 "Expected 2, but got 3" 에러 메시지 발생
+
+
+assertThrows[IllegalArgumentException] {  // IllegalArgumentException 에러가 생기는지 보고 싶다
+  elem('x', -2, 3)                      // array의 길이로 사용되는 width에 -2가 들어가니 NegativeArraySizeException 에러 발생 예정
+}                                       // "Expected IllegalArgumentException to be thrown"
+                                        // "but NegativeArraySizeException was thrown" 에러 메시지 출력
+
+
+
+val caught = intercept[ArithmeticException] { // ArithmeticException이 나는지 보고 싶다
+  1 / 0                                       // Divide by zero도 ArithmeticException이므로 발생해서 그 결과가 caught에 저장
+}
+
+assert(caught.getMessage == "/ by zero")  // 메시지가 같으므로 assert 통과
+
 ```
 
 
+#### 14.4 명세로 테스트하기
+- 동작 주도 개발 (BDD: Behavior-Driven Development) 테스트 스타일
+  - 기대하는 코드의 동작을 사람이 읽을 수 있는 명세로 작성
+  - 코드가 명세에 따라 작동하는지 확인
+
+- 스칼라테스트의 FlatSpec사용
+  - 명세 절 (sepcifier clause) 을 사용해 테스트 작성
+  - 명세 절의 구조
+    - 주제 (subject)
+    - should (또는 must 나 can)
+      - 뭘 쓰던 동일하게 동작
+      - 그냥 사용자 편의성으로 셋 다 되게 해놨다고 함
+      - 원한다면 각각 다르게 동작 하도록 재정의할수 있긴 하지만 추천하지 않음
+    - 주제의 작동을 설명하는 문자열
+    - in
+    - { 테스트 코드 }
+  - 주제에 it 을 넣으면 자동으로 가장 최근 주제가 지정됨
+
+```scala
+import org.scalatest.FlatSpec
+import org.scalatest.Matchers
+import Element.elem
+
+class ElementSpec extends FlatSpec with Matchers {
+  // 주제: "A UniformElement"
+  // should
+  // 설명문: "have a width eqal to the passed value"
+  // in
+  // 테스트코드
+  "A UniformElement" should "have a width eqal to the passed value" in {
+    val ele = elem('x', 2, 3)
+    ele.width should be (2)  // assert와 동일한 동작
+  }
+  
+  // 주제: "A UniformElement"
+  // should
+  // 설명문: "have a width eqal to the passed value"
+  // in
+  // 테스트코드
+  it should "have a width eqal to the passed value" in  {
+    val ele = elem('x', 2, 3)
+    ele.height should be (3)  // assert와 동일한 동작
+  }
+
+  // 주제: "A UniformElement"
+  // should
+  // 설명문: "throw an IAE if passed a negative width"
+  // in
+  // 테스트코드
+  it should "throw an IAE if passed a negative width" in {
+    an [IllegalArgumentException] should be thrownBy {     // intercept와 동일한 동작
+      elem('x', -2, 3)
+    }
+  }
+}
+
+(new ElementSpec).execute()
+// 테스트 출력 결과
+// A UniformElement
+// - should have a width equal to the passed value
+// - should have a height equal to the passed value
+// - should throw an IAE if passed negative width
+// 이후 정상 동작 (위의 두개 assert와 마지막 intercept 모두 잘 통과)
+```
+
+- 연결자 (matcher) 도메인 특화 언어 (DSL: Domain-Specific Langauge)
+  - Matchers 트레이트를 혼합하여 사용 가능
+  - 자연어처럼 읽을 수 있는 단언문 작성 가능
+  - 목적
+    - 개발자가 아닌 사람이 
+  - 목적코드를
+  - 목적
