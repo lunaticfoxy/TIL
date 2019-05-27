@@ -100,4 +100,32 @@ class ElementSuite extends FunSuite {
 (new ElementSuite).execute()
 ```
 
-#### 14.3 충분한 정보를 
+#### 14.3 충분한 정보를 제공하는 실패 보고
+- 14.2의 테스트에서 단언문 실패시 파일 이름, 실패한 단언문의 줄 번호, 추가 정보가 담긴 오류메시지가 오류 보고에 포함되어야 함
+- DiagrammedAssertions를 통해 assert에서 발생한 오류메시지의 다이어그램 확인 가능
+  - 책에 이렇게만 나와있는데 import DiagrammedAssertions._ 를 통해 사용 가능함
+- assertResult: 단순 값이 가대하는 값인지 확인하고 싶을때 사용할 수 있는 테스트  
+  - 첫번째 함수 인자: 기대하는 값 {1}
+  - 두번째 함수 인자: 확인할 값 {2}
+  - 실패시 "Expected {1}, but got {2}" 라는 에러 메시지 출력
+- 발생할 
+  - 실패시 "Expected {1}, but got {2}" 라는 에러 메시지 출력
+
+```scala
+import DiagrammedAssertions._
+
+assert(List(1, 2, 3).contains(4))
+
+org.scalatest.exceptions.TestFailedException:
+assert(List(1, 2, 3).contains(4))
+        |   |  |  |     |     |
+        |   1  2  3   false   4
+       List(1, 2, 3)
+
+
+assertResult(2) {  // ele.width == 2 인지 확인하고자 한다
+  ele.width
+}                  // ele.width = 3 이라면 "Expected 2, but got 3" 에러 메시지 발생
+```
+
+
