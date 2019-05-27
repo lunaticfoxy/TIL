@@ -108,8 +108,7 @@ class ElementSuite extends FunSuite {
   - 첫번째 함수 인자: 기대하는 값 {1}
   - 두번째 함수 인자: 확인할 값 {2}
   - 실패시 "Expected {1}, but got {2}" 라는 에러 메시지 출력
-- 발생할 
-  - 실패시 "Expected {1}, but got {2}" 라는 에러 메시지 출력
+- assertThrows: 발생할 
 
 ```scala
 import DiagrammedAssertions._
