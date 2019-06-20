@@ -19,7 +19,32 @@
   - 데이터 분할처리
     - 수동처리
       - 코드로 직접 데이터를 나눠서 받아 처리하고 이후 합치도록 구성
-      - 셀프 맵리듀스?
+        - union 보다 join이 훨씬 큰 자원을 먹는다는 점을 이용
+        - repartition은 꼭 할필요는 없지만 성능 향상에 도움이 될 가능성이 존재
+      - 예시 방법
+```scala
+val df1 = spark.sql("select * from tb1")
+val df2 = spark.sql("select * from tb2")
+
+val cutSize = 5
+val dfSeq = (0 until 5).map{i =>
+                        df1.filter(df1("key")%5==i).repartition("key")
+                          .join(df2.filter(df("key")%5==i).repartition("key"), df1("key")===df2("key"), "full outer")
+             }
+
+def unionAll(df, dfs:Seq[Dataframe]) : Dataframe = {
+  if(dfs.length == 0)
+    df
+  else if(df==null)
+    unionAll(dfs(0), dfs.drop(1))
+  else
+    unionAll(df.union(dfs(0), dfs.drop(1))
+}
+
+val dfAll = unionAll(null, dfSeq)
+```
+      - 주의사항: 나눌 Key가 일정한 비율로 나뉜다는걸 가정해야 한다
+        - 꼭 일정하지는 않아도 한 df로 너무 많이 들어가면 문제가 된다
     - 자동처리
       - 노드를 늘리면 알아서 데이터가 분할된다!
       - 머니 이즈 파워!
