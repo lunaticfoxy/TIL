@@ -17,3 +17,12 @@ from table2
 lateral view explode(arrcolumn) a as elem
 ```
 
+#### json tuple
+- json object를 파싱하기위한 함수
+- 다음과같이 이중으로도 파싱가능
+```sql
+select v2.name,v2.id 
+from clients c 
+lateral view json_tuple(c.client, 'info') v1 as info
+lateral view json_tuble(v1.info,'id','name') v2 as id,name
+``` 
