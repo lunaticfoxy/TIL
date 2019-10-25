@@ -1,0 +1,76 @@
+
+
+#### 데이터 소스
+- 스파크의 핵심 데이터 소스
+  - CSV
+  - JSON
+  - Parquet
+  - ORC
+  - JDBC/ODBC 연동
+  - 일반 텍스트 파일
+- 외부 데이터 소스
+  - 카산드라
+  - HBase
+  - MongoDB
+
+
+#### 9.1 데이터소스 API의 구조
+- 읽기 API 구조
+  - DataFrameReader 사용
+  - spark.read 속성으로 접근 가능
+  - 읽기모드 옵션
+    - permissive: 오류를 null로 처리
+    - dropMalformed: 오류레코드 제거
+    - failFast: 오류 존재시 종료
+- 쓰기 API 구조
+  - DataFrameWriter 사용
+  - dataframe.write 속성으로 접근 가능
+  - 쓰기모드 옵션
+    - append: 이어쓰기
+    - overwrite: 덮어쓰기
+    - errorIfExists: 오류 처리 (기본)
+    - ignore: 그냥 무시?
+ 
+#### 9.2 CSV파일
+- 파일 읽기
+  - spark.read.format("csv") 형태로 사용
+    - LazyExecution이므로 실제 잡실행시에만 오류 발생
+- 파일 쓰기
+  - file.write.format("csv") 형태로 사용
+- tsv도 csv의 일종으로 친다
+
+
+#### 9.3 JSON파일
+- csv와 동일하게 사용하되 포맷만 json으로 지정한다
+- 한 라인에 한 json 구문이 들어있다고 가정함
+
+#### 9.4 Parquet 파일
+- 스토리지 최적화 기술을 제공하는 오픈소스 저장형태
+- 장기저장 용도로는 추천
+- 첨언
+  - Hive에서는 에러 나는 경우가 많음
+  
+#### 9.5 ORC 파일
+- 하둡 워크로드를 위해 설계된 데이터 포맷
+- 대규모 스트리밍 읽기에 최적화
+- 필요한 row를 신속하게 찾아낼수 있는 기능이 포함 (인덱싱??)
+- Parquet은 스파크, ORC는 하둡에 최적화
+
+#### 9.6 SQL 데이터베이스
+- 데이터베이스는 고려해야 할 점이 많음
+  - 인증정보, 접속정보 등
+- 드라이버 jar를 포함시켜야 사용 가능
+- 쿼리 푸시 다운
+  - 스파크는 DataFrame을 만들기 전에 데이터베이스 자체에서 데이터를 필터링하도록 만들 수 있음
+    - 스파크 sql로 변환해서 알아서 해주는 듯함
+  - dbDataFrame.filter(쿼리) 형태로 사용
+  - 단 모든 스파크 함수를 넣을순 없으므로
+    - option("dbtable", pushDownQuery) 형태로 쿼리를 직접 넘길수 있음
+- 데이터베이스 병렬 읽기
+  - 스파크는 파일 크기, 유형, 압축 방식에 따라 파일을 합치거나 분할하는 옵션이 있음
+  - 원하느 개수만큼 나누어 병렬처리 가능
+
+#### 9.7 텍스트파일
+- 파일의 각 라인이 DataFrame의 됨
+
+
