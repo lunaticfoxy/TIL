@@ -13,6 +13,9 @@
     - 이슈: https://github.com/apache/spark/pull/17290
     - 해결 커밋 로그 1: https://github.com/apache/spark/commit/27234e154db18cbc614053446713636a69046090
     - 해결 커밋 로그 2: https://github.com/apache/spark/commit/5da4bcffa1b39ea8c83fe63a09e68297be371784
+  - 주 발생 지점
+    - hive와 spark 에서 각각 생성한 테이블을 다른 플랫폼에서 카피할때
+    - 주로 spark parquet을 hive 에서 다른 테이블로 카피하면 발생
     
 ##### 해결방법
 - 코드를 직접 수정 가능할 때
@@ -24,4 +27,6 @@
     - 데이터 자체를 변경한다
     - 데이터를 읽을때 포맷에 따라 구조가 달라지므로 최대한 단순화 하면 문제가 사라진다
       - ex) spark의 parquet으로 저장되고 입력 출력 포맷이 따로 지정된 테이블을 hive에서 컬럼과 파티션만 지정해준 테이블로 바꾸면 잘 동작한다
+- 테이블 재생성
+  - spark에서 생성된 테이블은 spark으로, hive에서 생성된 테이블은 hive로 재카피한다
     
