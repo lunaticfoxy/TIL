@@ -42,13 +42,22 @@ val df_key = df.join(keysDf.withColumn("isKey", lit(1)), df("key")===keysDf("key
 
 val df_except = df.join(keysDf.withColumn("isKey", lit(1)), df("key")===keysDf("key"), "left") // left 조인으로 붙인 뒤 null인 값들이
               .filter(col("isKey").isNull)                                                     // df에만 포함된 값
+              
+val df_key = df.join(keysDf, df("key")===keysDf("key"), "semi")
+val df_except = df.join(keysDf, df("key")===keysDf("key"), "anti")
 ```
-- 사실상 제일 필요한 기능이지만 스파크 자체 미지원
-- 조인을 통해 꼼수를 써서 해결
-- 원리
+- 꼼수를 써서 해결하는 방법
   - a에 있고 b에도 있는 데이터를 가져오려면 a에만 있는 데이터를 제거해야 함
   - a와 b를 LEFT 조인하면 a의 데이터는 그대로 남고 b의 데이터는 a에 있는 것만 붙으므로 이를 사용하자
   - b에 새로운 컬럼을 하나 넣어서 flag로 사용한다 (위에서는 isKey)
   - a를 기준으로 b와 LEFT 조인을 하면 a에만 있는 데이터는 isKey값이 NULL이 된다
   - 따라서 이후에 isKey값이 NULL인 데이터를 제거하면 a에만 있는 데이터가 제거됨 (in 조건)
     - 반대로 a에만 있는 데이터만 남기고 싶다면 isKey값이 NULL이 아닌것만 남기면 됨 (not in 조건)
+- 조인을 통해 해결하는 방법
+  - (left) semi join
+    - in 연산과 동일하게 동작
+    - 조인하는 값이 있는 필드만 남김
+  - (left) anti join
+    - not in 연산과 동일하게 동작
+    - 조인하는 값이 없는 필드만 남김
+    - 
