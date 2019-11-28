@@ -80,13 +80,15 @@ val a = 3x4 // a에 Rectangle(3,4) 가 저장된다
 
 ![Dataset map function](./img/dataset_map.png)
 
-- 컴파일러가 채워넣을 수 있는 인자
-  - 채워넣지 않은 마지막 파라미터 목록
-    - someCall(a, b, c, d) 일때 someCall(a, b) => someCall(a, b, c, d) 처럼 뒤에 남은 값들을 자동으로 채워줌
-  - 커링한 파라미터 목록
-    - someCall(a)(b, c, d) 일때 someCall(a) => someCall(a)(b, c, d) 처럼 커링 목록을 자동으로 채워줌
+##### 컴파일러가 채워넣을 수 있는 인자
+- 채워넣지 않은 마지막 파라미터 목록
+  - someCall(a, b, c, d) 일때 someCall(a, b) => someCall(a, b, c, d) 처럼 뒤에 남은 값들을 자동으로 채워줌
+  - 반드시 implicit 으로 c, d 에 대한 정의가 있어야 함
+- 커링한 파라미터 목록
+  - someCall(a)(b, c, d) 일때 someCall(a) => someCall(a)(b, c, d) 처럼 커링 목록을 자동으로 채워줌
   - 반드시 implicit 으로 (b, c, d)에 대한 정의가 있어야 함
-  - someCall, someClass에서 암시적 변환 가능한 파라미터에 implicit 표시가 되어있어야 함
+- 양쪽 모두 someCall, someClass에서 암시적 변환 가능한 파라미터에 implicit 표시가 되어있어야 함
+  - 위의 경우 a,b,c,d 전체에, 아래 경우 b,c,d에
   - 예제
     - 셸에 메시지를 출력하고 셸 프롬프트 문자열 ("$", ">" 등) 을 출력하는 클래스 예시
 ```scala
@@ -103,16 +105,107 @@ object Greeter {
 
 //// 명시적으로 지정하는 방법
 val bobsPrompt = new PreferredPrompt("relax> ")
+
 Greeter.greet("Bob")(bobsPrompt)
 // ---------- 출력값 -----------
 // Welcome, Bob. The system is ready.
 // relax>
 
 
-//// 
+
+//// 암시적 제공 방법
+object JoesPrefs {
+  implicit val prompt = new PreferredPrompt("Yes, master> ")  // prompt 필드를 암시적으로 전달하겠다는 표현
+}
+
+import JoesPrefs._
+
+Greeter.greet("Joe")
+// ---------- 출력값 -----------
+// Welcome, Joe. The system is ready.
+// Yes, master>
 ```
 
+- 여러 파라미터를 암시적으로 전달하려면 단순히 암시적 제공을 위한 object에 이를 추가하면 됨
 
-    
-    
-    
+```scala
+class PreferredPrompt(val preference: String)  // implicit으로 전달될 클래스 Prompt 지정
+class PreferredDrink(val preference: String)  // implicit으로 전달될 클래스 Drink 지정
+
+object Greeter {
+  def greet(name: String)(implicit prompt: PreferredPrompt, drink: PreferredDrink) = {
+    println("Welcome, " + name + ". The system is ready.")
+    print("But while you works, ")
+    println("why not enjoy a cup of " + drink.preference + "?")
+    println(prompt.preference)
+  }
+}
+
+
+object JoesPrefs {
+  implicit val prompt = new PreferredPrompt("Yes, master> ")
+  implicit val drink = new PreferredPrompt("tea")
+}
+
+
+import JoesPrefs._
+
+
+Greeter.greet("Joe")(prompt, drink)  // import 된 인자를 명시적으로도 전달가능
+// ---------- 출력값 -----------
+// Welcome, Joe. The system is ready.
+// But while you works, why not enjoy a cup of tea?
+// Yes, master>
+
+Greeter.greet("Joe")
+// ---------- 출력값 -----------
+// Welcome, Joe. The system is ready.
+// But while you works, why not enjoy a cup of tea?
+// Yes, master>
+```
+
+##### 암시적 파라미터가 주로 사용되는 경우
+  - 암시적 파라미터 앞 명시적 파라미터에 대한 정보 제공
+    - Haskell의 타입클래스와 유사
+  - 예시
+```scala
+// 명시적인 형태의 함수 - elements 라는 리스트와 비교를 위한 클래스 ordering을 입력받아서 가장 큰 원소 리턴
+def maxListOrdering[T](elements: List[T])(ordering: Ordering[T]): T = elements.match {
+  case List() => throw new IllegalArgumentException("empty list!")   // 리스트가 비어있으면 에러
+  case List(x) => x    // 리스트에 원소가 1개면 해당 값 리턴
+  case x :: rest =>    // 리스트에 원소가 여러개면
+    val maxRes = maxListOrdering(rest)(ordering)  // 맨 앞이외에 나머지 값에 대해 재귀 수행
+    if(ordering.gt(x, maxRest)) x                 // 재귀 결과와 맨 앞값을 비교해서 큰 값 리턴
+    else maxRest
+}
+
+// 암시적 파라미터를 사용한 동일한 함수 - Ordering[T]에 대한 암시적 정의가 있다면 사용
+def maxListOrderingImplicit[T](elements: List[T])(implicit ordering: Ordering[T]): T = elements.match {
+  case List() => throw new IllegalArgumentException("empty list!")   // 리스트가 비어있으면 에러
+  case List(x) => x    // 리스트에 원소가 1개면 해당 값 리턴
+  case x :: rest =>    // 리스트에 원소가 여러개면
+    val maxRes = maxListOrdering(rest)(ordering)  // 맨 앞이외에 나머지 값에 대해 재귀 수행
+    if(ordering.gt(x, maxRest)) x                 // 재귀 결과와 맨 앞값을 비교해서 큰 값 리턴
+    else maxRest
+}
+
+// 실제 스칼라 기본 라이브러리에 기본 자료형에 대한 Ordering[T] 정의되어있음
+maxListOrderingImplicit(List(1, 5, 10, 3)) // 10 - 자동으로 Ordering[Int] 찾아 씀
+maxListOrderingImplicit(List(1.5, 5.2, 10.7, 3.141592)) // 10.7 - 자동으로 Ordering[Double] 찾아 씀
+maxListOrderingImplicit(List("one", "two", "three")) // "two" - 자동으로 Ordering[String] 찾아 씀
+```
+
+##### 암시적 파라미터에 대한 스타일 규칙
+- 일반적이지 않은 특별한 이름의 타입을 사용해야 함
+  - 위의 maxListOrderingImplicit 에서 ordering을 함수 대신 객체로 감싼것도 그런 이유
+- 안좋은 예시
+```scala
+def maxListPoorStyle[T](elements: List[T])(implicit orderer(T, T) => Boolean): T
+```
+  - 아무 타입의 파라미터 2개를 boolean으로 바꾸는 모든 함수에 해당될 수 있음
+
+
+
+
+#### 21.6 맥락 바운드
+- 파라미터에 implicit을 사용할 경우 함수 내에서
