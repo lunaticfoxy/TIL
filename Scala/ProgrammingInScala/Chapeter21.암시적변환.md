@@ -180,11 +180,11 @@ def maxListOrdering[T](elements: List[T])(ordering: Ordering[T]): T = elements.m
 }
 
 // 암시적 파라미터를 사용한 동일한 함수 - Ordering[T]에 대한 암시적 정의가 있다면 사용
-def maxListOrderingImplicit[T](elements: List[T])(implicit ordering: Ordering[T]): T = elements.match {
+def maxListOrderingImp[T](elements: List[T])(implicit ordering: Ordering[T]): T = elements.match {
   case List() => throw new IllegalArgumentException("empty list!")   // 리스트가 비어있으면 에러
   case List(x) => x    // 리스트에 원소가 1개면 해당 값 리턴
   case x :: rest =>    // 리스트에 원소가 여러개면
-    val maxRes = maxListOrdering(rest)(ordering)  // 맨 앞이외에 나머지 값에 대해 재귀 수행
+    val maxRes = maxListOrderingImp(rest)(ordering)  // 맨 앞이외에 나머지 값에 대해 재귀 수행
     if(ordering.gt(x, maxRest)) x                 // 재귀 결과와 맨 앞값을 비교해서 큰 값 리턴
     else maxRest
 }
@@ -208,4 +208,88 @@ def maxListPoorStyle[T](elements: List[T])(implicit orderer(T, T) => Boolean): T
 
 
 #### 21.6 맥락 바운드
-- 파라미터에 implicit을 사용할 경우 함수 내에서
+- 파라미터에 implicit을 사용할 경우 함수 내에서도 이를 다시 암시적 값으로 사용
+```scala
+def maxListOrderingImp2[T](elements: List[T])(implicit ordering: Ordering[T]): T = elements.match {
+  case List() => throw new IllegalArgumentException("empty list!")
+  case List(x) => x 
+  case x :: rest => 
+    val maxRes = maxListOrderingImp2(rest)        // 여기서도 뒤에 ordering 생략해버릴 수 있음
+    if(ordering.gt(x, maxRest)) x
+    else maxRest
+}
+```
+
+- 거기다가 ordering이란 이름 대신 "암시적으로 들어올 무언가" 라는 형태로도 표현 가능
+  - implicitly이용
+    - 표준 라이브러리에 존재
+    - def implicitly[T](implicit t: T) = t
+    - 암시적으로 들어올 타입 T인 "무언가"를 리턴
+```scala
+def maxListOrderingImp3[T](elements: List[T])(implicit ordering: Ordering[T]): T = elements.match {
+  case List() => throw new IllegalArgumentException("empty list!")
+  case List(x) => x 
+  case x :: rest => 
+    val maxRes = maxListOrderingImp3(rest)
+    if(implicitly[Ordering[T]].gt(x, maxRest)) x        // 암시적으로 들어올 Ordering[T] 타입의 "무언가"를 사용
+    else maxRest
+}
+```
+
+- 여기까지 오면 ordering이란 이름 필요없음
+```scala
+def maxListOrderingImp4[T](elements: List[T])(implicit anyThing: Ordering[T]): T = elements.match {
+  case List() => throw new IllegalArgumentException("empty list!")
+  case List(x) => x 
+  case x :: rest => 
+    val maxRes = maxListOrderingImp4(rest)
+    if(implicitly[Ordering[T]].gt(x, maxRest)) x
+    else maxRest
+}
+```
+
+- 아예 생략해버리고 그냥 implicit으로 이런 타입 들어올거니깐 허용해줘라 만 알려주자
+  - 요게 맥락 바운드 이다
+```scala
+def maxListOrderingImp5[T : Ordering](elements: List[T]): T = elements.match { // Ordering이라는 타입이 들어올거니깐 너그럽게 봐줘라
+  case List() => throw new IllegalArgumentException("empty list!")
+  case List(x) => x 
+  case x :: rest => 
+    val maxRes = maxListOrderingImp5(rest)
+    if(implicitly[Ordering[T]].gt(x, maxRest)) x
+    else maxRest
+}
+```
+
+
+#### 21.7 여러 변환을 사용하는 경우
+- 적용 가능한 함시적 변환이 스코프 안에 여러개 있을 경우
+  - 기본적으로 스칼라는 변환을 수행하지 않음 (scala 2.7까지)
+  - 단 특정한 경우에는 변환 가능 (scala 2.8부터)
+- 여러 변환이 중첩될때 선택하는 기준
+  - 변환중 하나가 다른 하나보다 더 구체적이라면 구체적인 것 선택
+    - 전자의 인자 타입이 후자의 서브타입이다
+    - 두 변환 모두 메소드인데, 전자를 둘러싼 클래스가 후자를 둘러싼 클래스의 서브셋이다
+  - 대략적으론 알겠는데 실제 적용을 모르겠음
+- 바꾼 원인은 문자열에서의 문제
+```
+val cba = "abc".reverse   // cba는 스칼라 컬렉션이 됨 - 컬렉션과 스트링의 implicit reverse를 모두 만들지 않았기 때문에 생긴 문제
+val res = ("abc" == "abc".reverse.reverse) // res가 false 였음!
+```
+
+
+#### 21.8 암시 디버깅
+- 암시를 컴파일러가 찾지 못할때 사용할 수 있는 방법: 명시적으로 변환 함수를 넣어본다
+- 컴파일러가 암시적 변환을 어떤 함수로 수행하는지 알고싶을 경우: 컴파일러에 -Xprint:typer 옵션을 준다
+
+
+
+#### 21.9 결론
+- 암시적 변환은 코드 단축을 위한 강력한 기능
+- 경고
+  - 암시를 너무 자주 사용하면 코드 이해 어려움
+  - 암시 추가전 최대한 상속, 믹스인, 오버로드 등을 이용해서 대체할 방법을 찾아볼것
+
+
+
+
