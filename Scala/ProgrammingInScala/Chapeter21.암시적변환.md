@@ -67,8 +67,19 @@ val a = 3x4 // a에 Rectangle(3,4) 가 저장된다
 ```
     
     
-    
-    
+------------------------------------------------
+
+
+#### 21.5 암시적 파라미터
+- 함수 인자 목록 자체도 암시적 변환 가능
+  - 예시
+    - someCall(a) => someCall(a)(b)
+    - new someClass(a) => new SomeClass(a)(b)
+  - 함수 호출시 빠진 파라미터를 자동으로 채워넣음
+    - spark.implicit._ import 시 Dataframe.map의 인자에서 Encoder를 생략 가능한것이 이를 활용한것으로 보임
+    - ![Dataset map function](./img/dataset_map.png)
+  - 
+  
     
     
     
