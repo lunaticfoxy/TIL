@@ -77,9 +77,42 @@ val a = 3x4 // a에 Rectangle(3,4) 가 저장된다
     - new someClass(a) => new SomeClass(a)(b)
   - 함수 호출시 빠진 파라미터를 자동으로 채워넣음
     - spark.implicit._ import 시 Dataframe.map의 인자에서 Encoder를 생략 가능한것이 이를 활용한것으로 보임
-    - ![Dataset map function](./img/dataset_map.png)
-  - 
-  
+
+![Dataset map function](./img/dataset_map.png)
+
+- 컴파일러가 채워넣을 수 있는 인자
+  - 채워넣지 않은 마지막 파라미터 목록
+    - someCall(a, b, c, d) 일때 someCall(a, b) => someCall(a, b, c, d) 처럼 뒤에 남은 값들을 자동으로 채워줌
+  - 커링한 파라미터 목록
+    - someCall(a)(b, c, d) 일때 someCall(a) => someCall(a)(b, c, d) 처럼 커링 목록을 자동으로 채워줌
+  - 반드시 implicit 으로 (b, c, d)에 대한 정의가 있어야 함
+  - someCall, someClass에서 암시적 변환 가능한 파라미터에 implicit 표시가 되어있어야 함
+  - 예제
+    - 셸에 메시지를 출력하고 셸 프롬프트 문자열 ("$", ">" 등) 을 출력하는 클래스 예시
+```scala
+//// 기본 세팅
+class PreferredPrompt(val preference: String)  // implicit으로 전달될 클래스 지정
+
+object Greeter {
+  def greet(name: String)(implicit prompt: PreferredPrompt) = {  // prompt에 implicit 표시
+    println("Welcome, " + name + ". The system is ready.")
+    println(prompt.preference)
+  }
+}
+
+
+//// 명시적으로 지정하는 방법
+val bobsPrompt = new PreferredPrompt("relax> ")
+Greeter.greet("Bob")(bobsPrompt)
+// ---------- 출력값 -----------
+// Welcome, Bob. The system is ready.
+// relax>
+
+
+//// 
+```
+
+
     
     
     
