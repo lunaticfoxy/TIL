@@ -261,6 +261,8 @@ b1 == b2 // true. Branch의 원소타입을 검사하지 않기 때문.
 case that: Branch[t] => ... // t 말고 _ 써도 같다.
  
 // 아래는 올바른 구현
+// - 아예 타입 체크를 피하는 방법
+// - 와일드 카드 타입을 넣어 모든 타입에 대해 통과 가능하도록 한다
 class Branch[+T] (
    val elem: T,
    val left: Tree[T]
