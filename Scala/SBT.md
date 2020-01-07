@@ -23,3 +23,26 @@
 - compile : 소스코드를 컴파일한다.
 - run : test/src/ 소스코드를 실행한다.
 - test : 소스코드를 컴파일하고 실행한다. (compile + run)
+
+
+#### Dependency 추가
+- 기본적으로는 Maven과 유사
+- build.sbt에 정의
+- libraryDependencies 시퀀스에 라이브러리 추가
+- resolvers 시퀀스에 리포지토리 추가 가능
+```scala
+libraryDependencies ++= Seq(
+  groupID % artifactID % revision,
+  groupID % otherID % otherRevision
+)
+
+libraryDependencies ++= Seq(
+  "org.apache.spark" %% "spark-core" % "1.6.0" % "provided",
+  "org.apache.spark" %% "spark-sql" % "1.6.0" % "provided",
+  "org.apache.spark" %% "spark-hive" % "1.6.0" % "provided"
+)
+
+resolvers += name at location
+
+#ex> resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
+```
