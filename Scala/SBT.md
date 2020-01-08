@@ -46,3 +46,30 @@ resolvers += name at location
 
 #ex> resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 ```
+
+
+#### Packaging
+- maven에서 dependency libraries를 함께 packaging 하는 것과 동일한 개념
+- build.sbt에 다음 내용을 추가
+  - assemblyJarName in assembly :=  artifact.value.name + "-" + version.value + "." + artifact.value.extension
+
+```scala
+assemblyMergeStrategy in assembly := {
+  case PathList("javax", "servlet", xs @ _*)         => MergeStrategy.first
+  case PathList(ps @ _*) if ps.last endsWith ".html" => MergeStrategy.first
+  case "application.conf"                            => MergeStrategy.concat
+  case "unwanted.txt"                                => MergeStrategy.discard
+  case x =>
+    val oldStrategy = (assemblyMergeStrategy in assembly).value
+    oldStrategy(x)
+}
+```
+
+```scala
+assemblyMergeStrategy in assembly := {
+  case PathList("com","payco",xs @ _*) => MergeStrategy.last
+  case _ => MergeStrategy.discard
+}
+```
+- 다음 명령어로 패키지 생성
+  - sbt clean assembly
