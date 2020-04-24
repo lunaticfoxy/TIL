@@ -98,3 +98,24 @@ class Solution:
                 cnt += 1
             
         return cnt
+
+      
+### 예측으로 푸는중
+class Solution:
+    def findGoodStrings(self, n: int, s1: str, s2: str, evil: str) -> int:
+        
+        def findGoodStringUpper(s1:str, evil:str) -> int:
+            all_str = 26**len(s1)
+            evil_str = 26**(len(s1) - len(evil))
+            
+            
+            
+            return all_str - evil_str
+        
+        if evil in s1:
+            add = 1
+        else:
+            add = 0
+        
+        return findGoodStringUpper(s2) - findGoodStringUpper(s1) + add
+    
