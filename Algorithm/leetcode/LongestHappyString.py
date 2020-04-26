@@ -28,6 +28,9 @@ Explanation: It's the only correct answer in this case.
 - 이때 min(2, 남은값)을 출력한다
 - 만약 가장 많이 남은 값이 기존에 붙인 값이라면 그 다음 많이 남은 값을 한개만 출력한다
 - 이어 붙일 값이 없다면 종료한다
+- 추가 가능한 시도
+  - min(2, 2위와 1위의 차이)
+  - 2개 이어붙인 뒤에는 반드시 1개 이어붙이기
 
 """
 object Solution {
