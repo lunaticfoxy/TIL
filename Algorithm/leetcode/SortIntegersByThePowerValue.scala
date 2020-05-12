@@ -57,15 +57,13 @@ object Solution {
             }
         }
         
-        val temp =(lo to hi).map{x =>
+       (lo to hi).map{x =>
             (x, getPowerVal(x))
         }.sortWith{(x: (Int, Int), y: (Int, Int)) =>
             if(x._2 == y._2)
                 x._1 < y._1
             else
                 x._2 < y._2
-        }
-        
-        temp(k-1)._1
+        }(k-1)._1
     }
 }
