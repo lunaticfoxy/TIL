@@ -218,7 +218,27 @@ err = icotl(fd, SIOCIFMTU, &data) // SIOCIFMTU 는 어떤 명령을 처리할지
   - 디바이스 드라이버에서 새로운 명령어를 SIOCDEVPRIVATE와 SIOCDEVPRIVATE+15 사이 값으로 새로 정의 가능
     
 ### 넷링크
-    
-    
-    
-  
+- 사용자 공간과 커널 사이에 IP 네트워크 설정시 선호하는 인터페이스
+- 커널 내부 메시징 시스템으로도 사용됨
+- 표준 소켓 API를 사용해서 접근 가능
+  - domain: PF_NETLINK
+  - type: SOCK_DGRAM
+  - protocol
+    - 네트워킹 스택의 컴포넌트나 컴포넌트 세트에 따라 여러개 정의 가능
+    - NETLINK_ROUTE, NETLINK_FIREWALL 등
+    - include/linux/netlink.h 에 NETLINK_XXX 이름으로 정의
+- 넷링크 소켓의 endpoint는 PID를 통해 식별 가능
+  - PID가 0인 경우는 커널 프로세스
+- 유니캐스트, 멀티캐스트 사용 가능
+  - 엔드포인트의 주소는 PID나 멀티캐스트의 그룹 아이디, 혹은 이 둘의 조합
+    - 커널에서 특별한 이벤트의 알림을 사용할 때 넷링크 멀티캐스트 그룹 정의
+      - ex) RTMGRP_IPV4_ROUTE, RTMGRP_NEIGH : 라우팅 테이블의 변경, L3-L2 주소 매핑 변경시 알림
+    - 멀티캐스트 그룹은 include/linux/rtnetlink.h 내에 RTMGRT_XXX 형태로 정의
+    - 그룹 관련된 내용은 6부, 7부에서 상세히 다룸
+- acknowledgement (ACK) 값에 음수, 양수 모두 포함 가능
+- ioctl 등에 비한 장점: 커널이 수동적으로 동작하는게 아니고 적극적인 전송의 초기화가 가능함
+  - 소켓을 열어두고 있으면 커널이 정보를 먼저 전송하는게 가능하다는 이야기로 보임
+
+### 설정 변경의 직렬화
+- 사용자가 설정 변경시마다 커널 내부의 핸들러가 세마포어 (rtnl_sem)을 획득하여 네트워크 설정 정보에 접근하여 변경
+- ioctl, netlink 모두 동일하게 동작
