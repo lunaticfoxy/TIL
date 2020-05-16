@@ -187,11 +187,37 @@ int __init scsi_init_sysctl(void)
 
 ### ioctl
 - ifconfig로 보는 예시
-  - 
+  - 시스템 관리자가 "ifconfig eth0 mtu 1250" 입력
+    - MTU 값을 변경하기 위해
+  - ifconifg 가 소켓을 오픈
+  - 관리자에게 받은 정보로 로컬 데이터 스트럭쳐 초기화
+  - ioctl 호출을 통해 초기화된 데이터 스트럭쳐를 커널로 전달
+```c
+struct ifreq data;
+fd = socket(PF_INET, SOCK_DGRAM, 0);
+// data 초기화 시작
+...
+// data 초기화 끝
+err = icotl(fd, SIOCIFMTU, &data) // SIOCIFMTU 는 어떤 명령을 처리할지에 대한 커맨드 변수
+```
+  - sock_ioctl에 단계에서 커맨드 변수 (여기서는 SIOCIFMTU) 에 따라 루틴 변경
+    - sock_ioctl 단계에서 바로 처리 가능한 변수는 바로 처리
+      - br_ioctl_hook (17장), br_vlan_hook : 브릿징 관련 처리
+      - divert_ioctl, dlci_ioctl_hook
+    - SIOCIFMTU 는 sock_ioctl 단계에서 처리가 불가능
+  - sock_ioctl에서 처리가 불가능한 명령어는 Socket 을 통해 넘어온 데이터를 수신하여 inet_ioctl 단계에서 루틴 변경
+    - devinet_ioctl
+    - arp_ioctl (29장)
+    - ip_rt_ioctl (36장)
+    - SIOCIFMTU 는 inet_ioctl 단계에서 처리가 불가능
+  - inet_ioctl에서 처리가 불가능한 명령어는 TCP/UDP 여부에 따라 tcp_ioctl, udp_ioctl 단계로 이동
+    - tcp_ioctl / udp_ioctl 에서 처리가 가능한 명령어라면 처리
+    - inet_ioctl 은 tcp_ioctl / udp_ioctl 에서 처리가 불가능
+  - tcp_ioctl / udp_ioctl 단계에서 처리가 불가능한 명령어는 dev_ioctl로 전달
+- 네트워크용 ioctl 명령어는 include/linux/socket.h 에 정의되어 있음
+  - 디바이스 드라이버에서 새로운 명령어를 SIOCDEVPRIVATE와 SIOCDEVPRIVATE+15 사이 값으로 새로 정의 가능
     
-    
-    
-    
+### 넷링크
     
     
     
