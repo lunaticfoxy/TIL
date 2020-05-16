@@ -60,10 +60,134 @@
   - 읽기 전용 데이터중 간단한 커널 변수나 데이터 스트럭쳐는 sysctl 로 노출
     
   #### procfs
+  - 대부분의 네트워킹 기능에서 부팅시나 모듈 적재시 /proc 아래에 파일 등록
+    - /proc/net 아래에 네트워크 관련 코드 적재
+  - /proc 아래 파일 로드시 커널에서 함수를 호출하고 그 결과를 출력하는 식으로 동작
+  - proc_mkdir 을 통해 /proc 내 디렉토리 생성
+    - /proc/net 내부 파일은 include/linux/proc_fs.h 에서 정의한 proc_net_fops_create와 proc_net_remove 함수에 의해 등록되고 해제
+      - create_proc_entry, remove_proc_entry 함수에 으해 래핑
+      - proc_net_fops_create 는 내부에서 proc_net_create를 호출하여 파일을 생성하고 파일 작동 핸들러를 초기화
+        - ex) ARP 프로토콜이 /proc/net 아래에 arp 파일을 등록하는 방법
+```c
+static struct file_operations arp_seq_fops = {
+  .owner  = THIS_MODULE,
+  .open   = arp_seq_open,      // 초기화 - procfs가 사용자에게 정보를 전달하기 위한 함수 포인터 등록 발생
+  .read   = seq_read,
+  .llseek = seq_lseek,
+  .releae = seq_relase_private
+};
+
+static int __init arp_proc_init(void)
+{
+  if(!proc_net_fops_create("arp", S_IRUGO, &arp_seq_fops))  // "arp": 파일명, S_IRUGO: 읽기권한만 가짐, &arp_seq_fops: 호출 함수들
+    return -ENOMEM;
+  return 0;
+}
+
+static struct seq_operations arp_seq_ops = {
+  .start = clip_seq_start,    // 하나의 아이템에 대한 내용 출력 시작
+  .next = neigh_seq_next,     // 다음 아이템으로 이동
+  .stop = neigh_seq_stop,
+  .show = clip_seq_show       // 아이템 내용 출력
+}
+
+static int arp_seq_open(struct inode *inode, struct file *file)
+{
+  ...
+  rc = seq_open(file, &arp_seq_ops); // /proc/net/arp 파일 open시 연결될 함수 포인터들 등록
+  ...
+}
+```
+
+  #### sysctl: /proc/sys 디렉토리
+  - /proc/sys에 등록되는 커널 변수에 대해 다음 사항 정의 필요
+    - /proc/sys 아래 디렉토리 위치
+      - 동일한 커널 컴포턴트나 기능과 연관된 변수는 같은 디렉토리에 위치
+      - ex) /proc/sys/net/ipv4 아레에는 IPv4와 관련된 파일 저장
+    - 파일 이름
+    - 파일 권한
+  - /proc/sys에 노출된 변수 내용은 파일 접근 혹은 sysctl 시스템 콜을 통해 읽기-쓰기 가능
+  - /proc/sys내 디렉토리나 파일이 생성되는 이벤트
+    - 커널 모듈에 새로운 기능 등록
+    - 새로운 네트워크 장비가 등록되거나 제거
+      - 장치별로 하나씩 매개변수를 가지게 됨
+      - ex) /proc/sysnet/ipv4/conf, /proc/sys/net/ipv4/neigh 디렉토리는 네트워크 장치별로 하나의 하위 디렉토리를 가짐 (36장, 29장 설명)
+  - /proc/sys 안의 파일과 디렉토리는 ctl_table 스트럭쳐에 의해 정의
+    - kernel/sysctl.c에 정의된 register_sysctl_table, unregister_sysctl_table 함수로 등록, 제거
+    - ctl_table의 주요 필드
+      - const char *procname : /proc/sys 내 파일명
+      - int maxlen : 커널 변수의 크기
+      - mode_t mode : 파일과 디렉토리에 설정된 권한
+      - clt_table *child : 부모자식 관계 설정시 자식배열의 첫번째 원소 주소
+      - proc_handler : 파일 읽기와 쓰기를 담당하는 함수
+      - strategy : 데이터를 보여주거나 저장하기 전 추가적인 포매팅 수행 루틴
+      - extra1, extra2 : 변수에 최소값/최대값을 정의할때 사용
+    - proc_handler와 strategy는 변수의 특성에 따라 다르게 초기화됨
+      - proc__handler 초기화 함수
+        - proc_dostring: 문자열 읽기/쓰기
+        - proc_dointvec: 정수 배열 읽기/쓰기
+        - proc_dointvec_min_max: 범위 내의 정수 배열을 읽기/쓰기 (범위 밖이면 받아들이지 않음)
+        - proc_dointvec_jiffies: 지피스로 기록된 커널 변수를 초로 변환하여 사용자에게 읽기/쓰기 제공
+        - proc_dointvec_ms_jiffies: 지피스로 기록된 커널 변수를 밀리초로 변환하여 사용자에게 읽기/쓰기 제공
+        - proc_doulongvec_minmax: 범위 내의 long 배열을 읽기/쓰기 (unsigned long 같은데 확인 필요)
+        - proc_doulongvec_ms_jiffies_minmax: 지피스로 기록된 커널 변수중 범위 내의 long 배열을 밀리초 로 변환하여 사용자에게 읽기/쓰기 제공
+      - strategy 초기화 함수
+        - sysctl_string: 문자열 읽기/쓰기
+        - sysctl_intvec: 범위 내의 정수 배열 읽기/쓰기
+        - sysctl_jiffies: 지피스 값 초 단위로 변환하여 읽기/쓰기
+        - sysctl_ms_jiffies: 지피스 값을 밀리초 단위로 변환하여 읽기/쓰기
+      - ctl_table 초기화 예시 - drivers/scsi/scsi_sysctl.c 에 정의된 /proc/sys/dev/scsci/logging_level 파일 생성
+```c
+static ctl_table scsi_table[] = { 
+  {
+    .ctl_name     = DEV_SCSI_LOGGING_LEVEL,
+    .procname     = "logging_level",            // 파일명
+    .data         = &scsi_logging_level,        // 등록될 변수
+    .maxlen       = sizeof(scsi_logging_level), // 정수 변수
+    .mode         = 0644,                       // 권한 644 (모든 사람이 읽을수 있고 소유자만 쓸수 있음)
+    .proc_handler = &dproc_dointvec             // 정수 배열 읽기/쓰기
+  },
+  { }
+};
+
+static ctl_table scsi_dir_table[] = {
+  {
+    .ctl_name     = DEV_SCSI,
+    .procname     = "scsi",         // 디렉토리 명
+    .mode         = 0555,
+    .child        = scsi_table      // 하위에 scsi_table에 있는 파일/디렉토리 들을 가짐
+  },
+  { }
+};
+
+static ctl_table scsi_root_table[] = {
+  {
+    .ctl_name     = CTL_DEV,
+    .procname     = "dev",
+    .mode         = 0555,
+    .child        = scsi_dir_table  // 하위에 scsi_dir_table에 있는 파일/디렉토리 들을 가짐
+  },
+  { }
+};
+
+int __init scsi_init_sysctl(void)
+{
+  scsi_table_header = register_sysctl_table(scsi_root_table, 1); // /proc/sys 아래 scsi_root_table 과 하위 노드를 계층으로 삽입
+                                                                 // ctl_table 관리 리스트의 맨 앞에 삽입 (0이면 맨 뒤)
+}
+
+// 매번 위와 같은 구조를 작성하여 삽입하기 불편하므로 템플릿을 정의하고 새 파일을 추가할때 사용
+// ex) 인접 서브시스템은 net/core/neightbour.c 에 있는 neigh_sysctl_register를 사용
+```
+
+    - 주요 네트워크 파일과 디렉토리
+      - /proc/sys/net/bridge
+      - /proc/sys/net/core
+      - /proc/sys/net/ipv4/route, neigh, conf
+
+### ioctl
+- ifconfig로 보는 예시
   - 
-    
-    
-    
     
     
     
