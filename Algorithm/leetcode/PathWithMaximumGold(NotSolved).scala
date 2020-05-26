@@ -6,7 +6,6 @@ object Solution {
     def getMaximumGold(grid: Array[Array[Int]]): Int = {
         
         def recurFunc(grid: Array[Array[Int]], i: Int, j: Int, visited: Set[Int], cur_val: Int): Int = {
-            
             val u = if(i > 0 && grid(i - 1)(j) > 0 && !visited.contains((i - 1)*100 + j))
                recurFunc(grid, i - 1, j, visited + ((i - 1) * 100 + j), cur_val + grid(i)(j))
             else
@@ -28,13 +27,17 @@ object Solution {
             else
                 -1
             
-            Math.max(cur_val + grid(i)(j), u, d, l, r)
+            val temp = Math.max(Math.max(Math.max(Math.max(cur_val + grid(i)(j), u), d), l), r)
+            temp
         }
         
         (0 until grid.size).map{i =>
             (0 until grid(0).size).map{j =>
-                recurFunc(grid, i, j, new Set[Int], 0)
-            }
+                if(grid(i)(j) == 0)
+                    -1
+                else
+                    recurFunc(grid, i, j, Set(i*100 + j), 0)
+            }.max
         }.max
     }
 }
