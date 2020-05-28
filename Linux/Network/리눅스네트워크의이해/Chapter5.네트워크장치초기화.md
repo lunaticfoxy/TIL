@@ -45,5 +45,38 @@
   - ex) 전송량 조절 시스템의 큐
 
 
-### NIC 초기화의 기본 목적
-- 네트워크 장치는
+### NIC(Network Interface Card = 이더넷 랜 카드) 초기화의 기본 목적
+- 네트워크 장치는 커널 내 net_device_data 스트럭쳐의 인스턴스로 표현
+- 이 과정에서 드라이버가 장치/커널 간 통신에 필요한 리소스 할당
+
+#### IRQ 라인
+- NIC는 IRQ를 할당받고 필요한경우 커널에 인터럽트를 검
+  - 단, 가상 장치의 경우 IRQ를 지정받을 수 없음
+    - ex) 루프백 장치
+- /proc/interrupts 파일에서 현재 IRQ 할당 현환 확인 가능
+#### I/O 포트와 메모리 등록
+- 자신의 메모리 영역을 시스템 메모리로 매핑하여 사용
+- request_region, release_region 함수에 의해 등록/해제
+
+
+### 장치와 커널 간 통신
+#### 폴링
+- 커널측에서 수행
+- 장치의 상태를 주기적으로 체크하여 변경사항 확인
+#### 인터럽트
+- 장치 측에서 수행
+- 장치가 커널의 주의를 끌기위해 하드웨어 신호 발생
+
+### 하드웨어 인터럽트
+- 모든 인터럽트는 인터럽트 핸들러 함수를 실행하는 형태로 동작
+  - 장치별로 다른 핸들러를 지님
+  - 디바이스 드라이버에 의해 설치
+- NIC 등록 단계에서 IRQ를 할당받고 이에 대한 핸들러를 등록
+  - 관련 함수들
+    - kernel/irq/manage.c 에 정의
+    #### int request_irq(unsigned int irq, irq_handler_t handler, unsigned long flags, const char *name, void *dev) (= request_threaded_irq)
+    - 핸들러 등록
+    - IRQ의 유효성 확인 후 타 장치에 할당되지 않았는지 확인 후 등록
+    #### void free_irq(unsigned_int irq, void* dev_id)
+    - 핸들러 제거
+    - 다른 장치가 더 없다면 IRQ 라인 비활성
