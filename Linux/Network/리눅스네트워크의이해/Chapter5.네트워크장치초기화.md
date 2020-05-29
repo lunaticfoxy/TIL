@@ -98,4 +98,5 @@
  - 동기 전송 (DMA 미사용) 의 경우 프레임이 NIC로 옮겨지는 순간 인지
  - DMA 사용시 (비동기 전송) 명확한 인터럽트가 있어야 드라이버가 인지 가능
    - ex) DMA 사용시 - drivers/net/ethernet/3com/3c59x.c 에서 dev_kfree_skb 호출
+   - ex) DMa 미사용시 - drivers/net/ethernet/3com/3c509.c
    
