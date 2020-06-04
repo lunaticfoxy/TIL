@@ -98,5 +98,116 @@
  - 동기 전송 (DMA 미사용) 의 경우 프레임이 NIC로 옮겨지는 순간 인지
  - DMA 사용시 (비동기 전송) 명확한 인터럽트가 있어야 드라이버가 인지 가능
    - ex) DMA 사용시 - drivers/net/ethernet/3com/3c59x.c 에서 dev_kfree_skb 호출
-   - ex) DMa 미사용시 - drivers/net/ethernet/3com/3c509.c
-   
+   - ex) DMA 미사용시 - drivers/net/ethernet/3com/3c509.c
+     - 책에서는 dev_kfree_skb 호출 부분을 비교해본다고 하면 되는데 해당 파일에 dev_kfree_skb 호출이 존재하지 않음
+     - 다른 곳으로 옮겨졌거나 다른 함수를 사용하는것으로 보임
+ ##### 장치가 새 전송을 위한 충분한 메모리 있음
+ - NIC 장치가 프레임 크기 만큼의 공간을 가지고있지 않아 송신 측 큐를 중단하는 경우가 있음
+ - 이 경우 정상상태로 돌아오면 인터럽트를 발생시키고, 인터럽트를 수신하면 전송 재시작
+
+```c
+static netdev_tx_t el3_start_xmit(struct sk_buff *skb, struct net_device *dev)
+{
+	struct el3_private *lp = netdev_priv(dev);
+	int ioaddr = dev->base_addr;
+	unsigned long flags;
+
+	netif_stop_queue (dev);
+
+  ...
+
+	if (inw(ioaddr + TX_FREE) > 1536)
+		netif_start_queue(dev);
+	else
+		/* Interrupt us when the FIFO has room for max-sized packet. */
+		outw(SetTxThreshold + 1536, ioaddr + EL3_CMD);
+  ...
+}
+```
+- 상세 동작은 11장에서 설명
+
+
+#### 인터럽트 공유
+- IRQ라인은 제한된 리소스
+  - 많은 장치가 공유할수록 IRQ를 사용할 수 있는 장치가 늘어남
+- 장치들이 동일한 IRQ를 사용하되 자기가 필요 없는 호출은 핸들러 내부에서 걸러내도록 함
+- 이를 위해 장치가 IRQ에 등록될 때 인터럽트 공유 지원 여부를 명시적으로 알려줘야 함
+  - 첫번째로 해당 IRQ에 등록되는 장치가 인터럽트 공유를 허용했을 때만 새로운 장치가 해당 IRQ 공유 가능
+  - 이 때 새로운 장치도 인터럽트 공유를 허용해야 함
+
+#### IRQ와 핸들러 매핑 구조
+- IRQ-핸들러 매핑 구조는 벡터의 리스트에 저장됨
+  - IRQ별로 별개의 리스트 존재
+- irqaction 데이터 스트럭쳐에 매핑 정의
+  - request_irq 함수에서 irqaction 스트럭쳐를 받아 전역 irq_desc 벡터에 집어넣음
+  - irq_desc는 kernel/irq/irqdesc.c 에 정의
+    - 아키텍쳐마다 arch/XXX/kernel/irq.c 에 재정의 될 수 있다고 하는데 찾진 못함
+  - irq_desc는 맵 형태이며 각각의 원소는 해당 IRQ마다 할당된 irqaction의 리스트를 가리키고 있음
+- irqactionn 구조체 주요 데이터 필드
+  - void (*handler)(int irq, void *dev_id, struct pt_regs *regs)
+    - 인터럽트 처리 핸들러
+    - 파라미터
+      - irq: IRQ 번호 (보통 사용하지 않고 dev_id로 구분)
+      - dev_id: 장치 식별자
+      - regs: 프로세스의 레지스터 정보 (보통 사용되지 않음)
+  - unsigned long flags
+    - 플래그 세트로 include/asm-XXX/signal.h 에 정의된 값 입력
+    - 주요 플래그
+      - SA_SHIRO: 공유 IRQ 처리 여부
+      - SA_SIMPLE_RANDOM: 자기 자신을 무작위 이벤트의 소스로 사용 가능 (커널 내부 난수 발생에 사용 - 추후 상세 설명)
+      - SA_INTERRUPT: 핸들러 내부에서 발생하는 인터럽트를 무시한채로 수행 = 핸들러 내 타 인터럽트 호출 방지
+    - void *dev_id
+      - 해당 장치 net_device 의 포인터
+    - struct irqaction *net
+      - 같은 IRQ 번호를 사용하는 다음 irqaction과 연결
+    - const char *name
+      - 장치 이름
+      - /proc/interrrupts 에 표현되기 위한 값
+
+
+### 초기화 옵션
+- 컴파일시 들어간 디폴트를 재정의하거나 변경하기 위한 옵션
+#### 모듈 옵션
+- module_param 계열의 매크로들
+- 모듈 로드시 옵션 값 입력
+- 컴포넌트가 커널에 빌트인 되어있는경우 사용 불가
+  - 이후 필요한경우 /sys 파일 시스템을 사용하여 값 변경
+#### 부팅 시 커널 옵션
+- __setup 계열의 매크로들
+- 부팅시 부트로더를 통해 옵션값 입력
+- 커널에 빌트인된 컴포넌트가 사용
+- 모듈의 경우에도 사용은 가능하나 혼란스러울 경우도 있음
+
+### 모듈 옵션
+- module_param 계열 매크로를 통해 정의
+  - module_param(변수명, 변수타입, /sys 내 접근권한) 형태로 사용
+```c
+module_param(multicast_filter_limit, int 0444);
+moudle_param(max_interrupt_work, int 0444);
+moudle_param(debug, int 04444);
+```
+- module_param 으로 등록한 변수는 /sys/module 아래에 변수명으로 디렉터리를 할당받음
+- 주의사항
+  - 읽기권한을 주지 않으면 등록할 이유가 없음
+  - 쓰기권한을 줄 경우 값이 변경되었을때 알림을 받고 처리할 수 있도록 모듈을 만들어야 함
+
+
+### 장치 처리 계층 초기화: net_dev_init
+- 트래픽 컨트롤, CPU별 수신 큐 등의 네트워킹 코드 초기화는 net_dev_init 에서 부팅시 이루어짐
+  - net/core/dev.c 에 정의
+- 일어나는 초기화 - 초기화 함수
+  - CPU별 인터럽트 데이터 스트럭쳐 초기화
+  - /proc 내 파일 생성 - dev_proc_init, dev_mcast_init
+  - /sys/class/net 내 장치별로 디렉토리 생성 - netdev_sysfs_init
+  - 난수에 사용되는 초기값을 CPU별로 초기화 - net_random_init
+    - 난수는 여러 컨텍스트에서 여러 목적으로 사용
+      - ex) 타이머의 딜레이에 난수를 넣어 여러 타이머의 동시 동작 방지
+    - 커널 내 숫자의 난수화 정도를 시스템 엔트로피 라고 부름
+      - 엔트로피가 클수록 행동이 비 결정적
+    - 네트워크 디바이스는 몇개의 NIC 드라이버만 이에 기여
+  - 프로토콜에 의존성 없는 방향 캐시 초기화 (33장) - dst_init
+  - 프로토콜 핸들러의 역 다중화를 위한 핸들러 벡터 초기화 (13장)
+  - 큐 길이의 주기적 수집을 위한 타이머 생성 (10장) - net_dev_init
+  - CPU 핫 플러그 이벤트 발생 알림 체인에 콜백 핸들러 등록 - dev_cpu_callback
+
+### 사용자 공간 헬퍼
