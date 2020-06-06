@@ -235,7 +235,7 @@ moudle_param(debug, int 04444);
 - eth0 모듈 로드시 request_module 을 통해 모듈이 로드되는 과정
   - kmod 내 request_module 호출
   - kmod가 arg[0]에 /sbin/modprobe, arg[1]에 eth0 를 넣어 call_usermodehelper 호출
-  - call_usermodehelpoer가 /sbin/modprobe 실행
+  - call_usermodehelper가 /sbin/modprobe 실행
   - /sbin/modprobe 가 /etc/modprobe.conf 파일을 참조하여 모듈 이름 체크
     - 이 경우 eth0는 실제로 3c59x의 별칭임이 /etc/modprobe.conf 내에 'alias eth0 3c59x' 형태로 표시되어 있음
     - 따라서 실제로는 3c59x 를 호출
@@ -259,4 +259,18 @@ moudle_param(debug, int 04444);
     - 6장에 예시
 ##### /sbin/hotplug
 - 핫 플러그를 위한 사용자 공간 헬퍼
-- /etc/hotplug, /etc/hotplug.d 에 포함된
+- /etc/hotplug, /etc/hotplug.d 에 포함된 파일을 통해 설정 가능
+##### kobject_hotplug (lib/kobject_uevent.c)
+- 커널에서 장치의 삽입과 제거 이벤트에 응답하기 위해 호출되는 함수
+- NIC 추가 혹은 제거시 일어나는 동작
+  - 커널에서 kobject_hotplug 호출
+  - kobject_hotplug가 arg[0]에는 /sbin/hotplug, arg[1]에는 net.agent(스크립트 명)를 넣고, env에는 관련 환경 변수들을 넣음
+    - env[0]=HOME, env[1]=PATH, env[2]=ACTION, ... , env[i]=INTERFACE (여기서는 eth0)
+  - 설정된 arg와 env를 인자로 call_usermodehelper 호출
+  - call_usermodehelper가 /sbin/hotplug 호출하며 인자로 arg[1]에 있는 net.agent 전달
+  - /sbin/hotplug 에서는 net.agent 스크립트 실행
+  - net.agent는 env[i] 에 포함된 INTERFACE 정보 (여기서는 eth0) 에 따라 장치에 관련된 설정 적용
+
+#### 실제 PCMCIA 이더넷 카드 추가시
+- 먼저 /sbin/modprobe 가 수행되어 드라이버 모듈 로딩
+- 이후 /sbin/hotplug 가 수행되어 장치 설정 수행
