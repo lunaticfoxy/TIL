@@ -210,4 +210,53 @@ moudle_param(debug, int 04444);
   - 큐 길이의 주기적 수집을 위한 타이머 생성 (10장) - net_dev_init
   - CPU 핫 플러그 이벤트 발생 알림 체인에 콜백 핸들러 등록 - dev_cpu_callback
 
+
 ### 사용자 공간 헬퍼
+- 커널이 이벤트를 처리하기 위해 사용자 공간 프로그램을 호출하는 경우에 사용
+- 헬퍼 종류
+  #### /sbin/modprobe
+  - 커널이 모듈을 로드해야 할 때 사용
+  - module-init-tools 패키지에 포함
+  #### /sbin/hotplug
+  - 커널이 새로운 장치가 꽂히거나 뽑히는것을 감지했을 때 수행
+  - 장치 식별자에 따라 정확한 디바이스 드라이버 로드
+    - 꽂혀진 버스에 따라 식별
+    - 버스에서 정한 규격에 따라 ID 부여
+  - hotplug 패키지에 포함
+- 커널에서는 call_usermodehelper 함수를 통해 사용자 공간 헬퍼 호출
+  - 변수 리스트 arg[], 환경 변수 리스트 env[] 를 헬퍼 프로그램에 전달 가능
+    - arg[0]: 호출할 함수의 이름
+    - arg[1]: 호출할 설정 스크립트의 이름
+
+#### kmod (kernel/kmod.c)
+- 커널 컴포넌트가 모듈을 로드할 수 있게 해주는 커널 모듈 로더
+- 여러개의 루틴을 제공
+  - 여기서는 request_module만 설명하겠음
+- eth0 모듈 로드시 request_module 을 통해 모듈이 로드되는 과정
+  - kmod 내 request_module 호출
+  - kmod가 arg[0]에 /sbin/modprobe, arg[1]에 eth0 를 넣어 call_usermodehelper 호출
+  - call_usermodehelpoer가 /sbin/modprobe 실행
+  - /sbin/modprobe 가 /etc/modprobe.conf 파일을 참조하여 모듈 이름 체크
+    - 이 경우 eth0는 실제로 3c59x의 별칭임이 /etc/modprobe.conf 내에 'alias eth0 3c59x' 형태로 표시되어 있음
+    - 따라서 실제로는 3c59x 를 호출
+  - /sbin/modprobe 가 3c59x.ko 로드 시도
+- 사용자가 IPROUTE2 패키지의 tc 명령어로 트래픽 컨트롤 설정 시도시 커널에 없는 분류기를 참고하기도 함
+  - 이때도 /sbin/modprobe가 필요한 모듈 로드 시도
+
+#### 핫 플러그
+- 플러그앤플레이를 제공하기 위한 기능
+- 핫 플러그 가능 장치의 삽입/제거 감지시 사용자 프로그램에 알려주는 역할
+  - 필요한 경우 드라이버와 설정 로드
+- 개념상 핫 플러그 기능이 없거나, 부팅시에 이미 장착되어 있는 장치에 대해서도 알림 발생
+  - 실제로 조치를 취할지는 사용자 공간 애플리케이션이 결정
+- 장치 초기화를 위해 스크립트 세트 실행
+  - 리눅스 배포판별로 스크립트 이름, 위치는 다를 수 있음
+  - 부팅시에 존재하는 장치 알림은 이 단계에서 무시 (스크립트 세트가 없으므로)
+- 커널 모듈 컴파일 시 객체 파일은 /lib/modules/{커널_버전} 아래에 생성
+  - 해당 디렉토리 내 modules.pcimap, modules.usbmap 도 함께 존재
+    - 해당 파일은 커널에서 지원하는 장치의 pci id와 usb id, 그리고 그 장치들에서 참조해야 하는 모듈을 포함
+    - 이 파일들을 통해 정확한 장치 탐색
+    - 6장에 예시
+##### /sbin/hotplug
+- 핫 플러그를 위한 사용자 공간 헬퍼
+- /etc/hotplug, /etc/hotplug.d 에 포함된
