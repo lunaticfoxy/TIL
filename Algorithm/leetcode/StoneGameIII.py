@@ -5,13 +5,6 @@
 - 정수가 들어있는 배열이 주어지고 Alice와 Bob이 앞에서 부터 1~3개 씩을 선택한다
 - 선택한 정수의 합을 점수로 계산했을때 누가 이길지 여부를 리턴하라
 
-풀이방법
-- 각자 턴에서 자기 점수를 최대화, 상대편 점수를 최소화 하는 선택을 한다고 한다
-- 이를 재귀로 구성하면
-  - 1개 선택, 2개 선택, 3개 선택을 재귀로 시뮬레이션
-  - 결과중 내 점수 max, 상대편 점수 min 인 값을 선택
-- 물론 타임리밋나서 아직 해결필요
-
 샘플
 Example 1:
 Input: values = [1,2,3,7]
@@ -39,70 +32,49 @@ Example 5:
 Input: values = [-1,-2,-3]
 Output: "Tie"
 
+풀이방법
+- 각자 턴에서 자기 점수를 최대화, 상대편 점수를 최소화 하는 선택을 한다고 한다
+- 이를 재귀로 구성하면
+  - 1개 선택, 2개 선택, 3개 선택을 재귀로 시뮬레이션
+  - 결과중 max(내 점수 - 상대편 점수) 인 값을 선택
+- 이를 dp로 바꾸면
+  - 맨 뒤에서부터 차례로 현재 지점을 선택했을 때 얻을수 있는 최대 점수 차를 저장한다
+  - 맨 뒤에 3개는 수동으로 계산해주고
+  - 다음부터는 dp[i]를 다음중 가장 큰 값으로 갱신
+    - value[i] - dp[i+1]
+    - value[i] + value[i+1] - dp[i+2]
+    - value[i] + value[i+1] + value[i+2] - dp[i+3]
+  - 이후 dp[0] 에 있는 값이 먼저 선택한 Alice가 Bob에 비해 얻을 수 있는 점수차일것
+    - 0보다 크면 Alice 승리, 0이면 무승부 0보다 작으면 Bob 승리
 """
 class Solution:
     def stoneGameIII(self, stoneValue: List[int]) -> str:
+        dp = [0 for _ in range(len(stoneValue))]
         
-        
-        def recurFunc(turn, idx, score_a, score_b):
-            if len(stoneValue) <= idx:
-                return score_a, score_b
-            
-            s1 = stoneValue[idx]
-            s2 = stoneValue[idx] + stoneValue[idx+1] if(len(stoneValue) > idx+1) else -3000
-            s3 = stoneValue[idx] + stoneValue[idx+1] + stoneValue[idx+2] if(len(stoneValue) > idx+2) else -3000
-            
-            if turn == 0:
-                new_s_a_1, new_s_b_1 = recurFunc(1, idx + 1, score_a + s1, score_b)
-                new_s_a_2, new_s_b_2 = recurFunc(1, idx + 2, score_a + s2, score_b)
-                new_s_a_3, new_s_b_3 = recurFunc(1, idx + 3, score_a + s3, score_b)
-                
-                max_a = max(new_s_a_1, new_s_a_2, new_s_a_3)
-                min_b = min(new_s_b_1, new_s_b_2, new_s_b_3)
-                """
-                print("---Alice---")
-                print("idx: " + str(idx))
-                print("1: " + str(new_s_a_1) + ", " + str(new_s_b_1))
-                print("2: " + str(new_s_a_2) + ", " + str(new_s_b_2))
-                print("3: " + str(new_s_a_3) + ", " + str(new_s_b_3))
-                print("select: " + str(max_a) + ", " + str(min_b))
-                """
-                if max_a == new_s_a_1 and min_b == new_s_b_1:
-                    return new_s_a_1, new_s_b_1
-                elif max_a == new_s_a_2 and min_b == new_s_b_2:
-                    return new_s_a_2, new_s_b_2
-                else:
-                    return new_s_a_3, new_s_b_3
-            else:
-                new_s_a_1, new_s_b_1 = recurFunc(0, idx + 1, score_a, score_b + s1)
-                new_s_a_2, new_s_b_2 = recurFunc(0, idx + 2, score_a, score_b + s2)
-                new_s_a_3, new_s_b_3 = recurFunc(0, idx + 3, score_a, score_b + s3)
-                
-                min_a = min(new_s_a_1, new_s_a_2, new_s_a_3)
-                max_b = max(new_s_b_1, new_s_b_2, new_s_b_3)
-                """
-                print("---Bob---")
-                print("idx: " + str(idx))
-                print("1: " + str(new_s_a_1) + ", " + str(new_s_b_1))
-                print("2: " + str(new_s_a_2) + ", " + str(new_s_b_2))
-                print("3: " + str(new_s_a_3) + ", " + str(new_s_b_3))
-                print("select: " + str(min_a) + ", " + str(max_b))
-                """
-                if min_a == new_s_a_1 and max_b == new_s_b_1:
-                    return new_s_a_1, new_s_b_1
-                elif min_a == new_s_a_2 and max_b == new_s_b_2:
-                    return new_s_a_2, new_s_b_2
-                else:
-                    return new_s_a_3, new_s_b_3
-            
-        score_a, score_b = recurFunc(0, 0, 0, 0)
-        
-        diff = score_a - score_b
-        
-        if diff > 0:
-            return "Alice"
-        elif diff < 0:
-            return "Bob"
+        if len(stoneValue) > 0:
+            dp[-1] = stoneValue[-1]
         else:
             return "Tie"
         
+        if len(stoneValue) > 1:
+            dp[-2] = max(stoneValue[-1] + stoneValue[-2], stoneValue[-2] - stoneValue[-1])
+            
+        if len(stoneValue) > 2:
+            dp[-3] = max(stoneValue[-1] + stoneValue[-2] + stoneValue[-3],
+                        stoneValue[-2] + stoneValue[-3] - stoneValue[-1],
+                         stoneValue[-3] - dp[-2])
+        
+        for i in range(len(stoneValue)-4, -1, -1):
+            s_3 = stoneValue[i] + stoneValue[i+1] + stoneValue[i+2] - dp[i+3]
+            s_2 = stoneValue[i] + stoneValue[i+1] - dp[i+2]
+            s_1 = stoneValue[i] - dp[i+1]
+            
+            dp[i] = max(s_1, s_2, s_3)
+        
+        #print(dp)
+        if dp[0] > 0:
+            return "Alice"
+        elif dp[0] < 0:
+            return "Bob"
+        else:
+            return "Tie"
