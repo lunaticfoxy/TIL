@@ -71,12 +71,28 @@
 
 #### Reading Your Face: How To Humanize Technology With Emotion AI
 - https://medium.com/chmcore/reading-your-face-how-to-humanize-technology-with-emotion-ai-f5eff1cda17c
-- "감정
+- "감정 AI"를 연구하는 기업의 설립자에 대한 인터뷰
+- 얼굴 표정을 통해 감정을 탐지하는 모델 제작
+  - 자폐증 환자가 다른 사람의 감정을 읽는데 적용하여 상업화 성공
+- 이후 광고, 운전시 안전 확인 등에 대해 상업화 계획중
+- COVID-19 시대에 마스크를 쓰고 원거리에서 소통하는 경우 이 솔루션이 더 중요해질 수 있음
 
 
+#### UK releases guidelines to help governments accelerate ‘trusted’ AI deployments
+- https://artificialintelligence-news.com/2020/06/09/uk-guidelines-help-governments-trusted-ai-deployments/
+- 영국 정보에서 "신뢰할 수 있는 AI 솔루션" 에 대한 가이드라인 발표
+- 정부 기관에서 미래의 위험을 대비하기 위해 AI를 적용할때 가져야 할 요소에 대한 가이드라인
 
 
+#### Getting machine learning to production
+- http://veekaybee.github.io/2020/06/09/ml-in-prod/
+- ML 모델을 실제 배포하는데 대한 가이드
+- ML 모델의 배포 과정을 gpt-2 pytorch 모델을 docker 이미지를 통해 배포하는 예시를 통해 설명
 
 
-
+#### Title: ICML 2020 Tutorial on Submodular Optimization: From Discrete to Continuous and Back
+- http://iid.yale.edu/icml/icml-20.md/
+- ICML 2020 튜토리얼 자료 - 대규모의 불연속적인 데이터를 어떻게 연속적인 데이터로 다룰것인가
+- 메타 휴리스틱 방법, 
+- 모든 정보를 가지고 있을 경우, 정보가 불완전할 경우, 
 
