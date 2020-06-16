@@ -92,7 +92,9 @@
 
 #### Title: ICML 2020 Tutorial on Submodular Optimization: From Discrete to Continuous and Back
 - http://iid.yale.edu/icml/icml-20.md/
-- ICML 2020 튜토리얼 자료 - 대규모의 불연속적인 데이터를 어떻게 연속적인 데이터로 다룰것인가
-- 메타 휴리스틱 방법, 
-- 모든 정보를 가지고 있을 경우, 정보가 불완전할 경우, 
+- ICML 2020 튜토리얼 자료 - 대규모의 불연속적인 데이터를 어떻게 효율적으로 Optimization 할것인가
+- 데이터가 convex 하지 않으며 관측 불가능한 정보도 있을 경우에 사용 가능한 프레임워크에 대한 소개
+
+
+
 
