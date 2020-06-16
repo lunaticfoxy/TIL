@@ -97,4 +97,12 @@
 
 
 
+#### Kim receives inaugural dissertation award
+- https://www.seas.harvard.edu/news/2020/06/kim-receives-inaugural-dissertation-award
+- 하버드의 김윤희 씨가 자연어의 hidden variable 문제를 독립적인 모델로 해결하는 방식을 제안함으로서 우수 논문상 수상
+
+
+#### Deployment-Efficient Reinforcement Learning via Model-Based Offline Optimization
+- https://www.arxiv-vanity.com/papers/2006.03647/
+- 기존보다 1/10의 데이터로 오프라인 학습이 가능한 앙상블 모델 제안
 
