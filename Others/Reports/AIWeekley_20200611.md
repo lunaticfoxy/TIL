@@ -41,13 +41,39 @@
 
 #### Socitm publishes guidance on AI in social care
 - https://www.ukauthority.com/articles/socitm-publishes-guidance-on-ai-in-social-care/
-- AI가 사회 복지를 충족시키는 방법에 대한 가이드
+- AI가 사회 복지 (의료) 를 충족시키는 방법에 대한 가이드
 - 한번에 통합된 솔루션은 만들 수 없다
   - 몇개의 유즈 케이스에 적용하고 이를 점점 확장해나가야 한다
   - 확장을 위해 상호 운용 가능한 시스템을 만들고, 기술 표준을 지킬 필요가 있다
     - AI의 성숙도가 의료 체계의 성숙보보다 낮기 때문에 기술 표준이 무시될 위험이 있다
 - 지속 가능한 요소를 충족시켜야 한다
-  - 
+  - 중장기적으로 솔루션을 지속 가능하게 하는 요소를 포함해야 한다
+  - 체계적인 운영 모델, 설계의 유연성, 보안 이슈 해결 등
+  - 이를 위한 가이드라인 필요
+    - 기술 공유와 지속적으로 새로운 기술에 대한 조달 필요
+    - AI가 사회 복지 전문가에게 어느정도 권한을 줄지에 대한 결정 필요
+- 신뢰성을 갖춰야 한다
+  - 투명성, 책임성등에 대한 확인 단계 필요
+  - 모범 사례에 대한 공유와 관련 교육 필요
+
+
+
+#### Experts Predict Artificial Intelligence To Transform Warfare
+- https://www.eurasiareview.com/07062020-experts-predict-artificial-intelligence-to-transform-warfare/
+- 인공지능이 전쟁도 변화시킬것이다
+- 미국 국방 연구소에서 국방부의 거의 모든 시스템에 AI를 도입하려는 시도중
+- 상업적으로는 어느정도 적용이 되고 있지만 국방쪽에는 이제 막 도입단계
+- 위험도가 낮은 임무에 중점을 두고 있음
+  - 유지보수, 인도적 지원 등
+- 향후 공동 전투에 대해서도 도입 예정
+  - 1~2년내 전투기에 시스템을 도입하는것이 목표
+
+
+#### Reading Your Face: How To Humanize Technology With Emotion AI
+- https://medium.com/chmcore/reading-your-face-how-to-humanize-technology-with-emotion-ai-f5eff1cda17c
+- "감정
+
+
 
 
 
