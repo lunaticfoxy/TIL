@@ -27,6 +27,9 @@ Output: [1,2]
   - 다음 시도는 스킬셋 단위로 스킬을 가지고 있는 사람의 인덱스를 저장하도록 구성
   - 이후 스킬셋 단위로 재귀를 돌면서 해당 스킬을 가지고 있는 사람을 한명씩 선택하면서 다음 단계로 재귀 수행
     - 이때 선택된 사람이 포함된 스킬은 지우고 탐색
+  - 1차와 다른점
+    - 스킬의 이름을 저장하지 않아도 되므로 메모리 공간 최소화
+    - 사람수보다는 스킬수가 적은 겨웅가 대부분이므로 탐색 횟수 감소
 """
 object Solution {
     def smallestSufficientTeam(req_skills: Array[String], people: List[List[String]]): Array[Int] = {
