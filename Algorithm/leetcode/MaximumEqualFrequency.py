@@ -28,7 +28,14 @@ Output: 8
 풀이방법
 - 단순 dictionary 갱신으로 시도
   - 답은 나오나 타임리밋 발생
-- frequency 기준으로 
+- frequency 기준으로 dictionary를 만들고 max, min frequency를 갱신하자
+  - frequency마다 해당하는 값을 dictionary로 저장하고, 매번 max, min frequency를 갱신한다
+  - frequency의 종류수도 저장한다
+  - 그리고 다음에 해당하면 해당 지점을 최대 길이로 갱신한다
+    - 들어간 숫자의 종류가 1가지 일때
+    - frequency의 종류수가 2가지이고, maxFreq에 해당하는 종류의 수가 1개이며, maxFreq 와 minFreq 가 1 차이일때
+    - frequency의 종류수가 2가지이고, minFreq에 해당하는 종류의 수가 1개이며, minFreq가 1일때
+    - minFreq와 maxFreq가 모두 1일때
 
 """
 class Solution:
