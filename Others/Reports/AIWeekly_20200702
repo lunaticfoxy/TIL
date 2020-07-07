@@ -1,0 +1,45 @@
+### AI Weekly 2020년 7월 2일자
+#### http://aiweekly.co/
+
+
+#### Conversation on racism and robotics
+- https://robohub.org/conversation-on-racism-and-robotics/
+- STEM (Science, Technology, Engineering, Math) 분야와 인종차별 (+ 성소수자 차별) 사이의 관계
+- 이 분야의 주 인력들은 대학 교수로 이루어져 있음
+  - 그리고 대학 교수들은 실적을 요구당하고, 이로 인해 밥그릇 싸움으로 변질
+    - 실적이 피어리뷰, 유명한 저널의 논문 등의 기존 권위에만 의존하는 것이 문제
+  - 이런 환경에서는 약자에 대한 지지가 어려움
+    - 더 나아가 약자가 이 집단에 참여하는 것 조차 어려움
+- 대학 교수들에게 기업과의 협업 등의 활동을 통해 다양한 시도가 가능한 기회를 열어줘야 함
+
+
+#### MIT apologizes, permanently pulls offline huge dataset that taught AI systems to use racist, misogynistic slurs
+- https://www.theregister.com/2020/07/01/mit_dataset_removed/
+- MIT에서 오픈한 데이터셋이 인종차별 / 욕설 학습 등으로 악용되어 개제를 중지하고 사과
+- Tiny Images 데이터 셋
+  - 2000년대 후반 ~ 2010년 초반까지 주로 사용되던 이미지 내 객체를 표시 데이터 셋
+  - 특정 집단에 대한 비하 단어로 label 된 데이터 다수
+  - 미성년자가 접근할수 없는 이미지 포함
+- 자동 수집 알고리즘으로 모인 이미지라 명확한 검증이 없었음
+  - 32x32 사이즈라 그동안 파악하지 못함
+- 근본적으로는 WordNet 이라는 단어 사이 관계 구성 데이터셋에 있는 문제
+  - WordNet 내에 인종차별 단어 다수 존재
+  - 위 이미지들은 WordNet내에서 나타난 단어로 검색된 결과를 수집
+  - Image Net에서 자동 디스크립션 생성시에도 비슷한 문제 발생
+  
+  
+#### Unpredictability of Artificial Intelligence
+- https://hackernoon.com/unpredictability-of-artificial-intelligence-tp133uwd
+- 인공지능이 어떠한 행동을 할것인지 예측하지못하는 정도인 Unpredictability 에 대한 소개
+- Unpredictability (= Unknowability, Cognitive Uncontainability)
+  - 지능형 시스템이 목표 달성을 위해 어떤식으로 행동할 것인지에 대해 예측할 수 없는 정도
+  - 이해 불가능한 것과는 다른 개념
+    - 왜 이런 행동을 했는가 => 이해 가능
+    - 어떻게 행동을 할것인가 => 예측 가능
+- Bayesian surprise 이론을 통해 Unpredictability 를 계산 가능
+  - "놀람 (surprise)" 이라는 개념을 예측한 자극과 실제 자극의 차이로 계산
+  - 어떠한 자극이 주어졌을때 기대하던 자극과 얼마나 다른지에 대한 정도
+- Unpredictability를 최대한 낮추는것이 
+
+
+
