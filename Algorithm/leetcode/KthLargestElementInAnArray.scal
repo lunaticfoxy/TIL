@@ -1,0 +1,51 @@
+"""
+주소: https://leetcode.com/problems/kth-largest-element-in-an-array/
+
+내용
+- 주어진 어레이에서 k 번째 큰 값을 구하라
+
+샘플
+Example 1:
+Input: [3,2,1,5,6,4] and k = 2
+Output: 5
+
+Example 2:
+Input: [3,2,3,1,2,4,5,5,6] and k = 4
+Output: 4
+
+풀이방법
+- 퀵소트를 하되 한쪽으로만 재귀하는 형태로 진행한다
+- 배열의 길이가 1이면 맨 처음값 리턴
+- 피봇을 먼저 정하고
+  - 피봇보다 큰 값의 개수가 k보다 클경우 피봇보다 큰 값에서만 다시 재귀 수행
+  - 피봇보다 큰 값의 개수가 k보다 작지만, 피봇을 포함한 수가 k보다 클 경우 피봇 리턴
+  - 위 조건에 맞지 않을 경우 피봇보다 작은 값에 대해서만 재귀를 수행하고, k를 k - (배열의 전체 길이 - 피봇보다 작은 값의 수) 로 조정
+
+"""
+object Solution {
+    def findKthLargest(nums: Array[Int], k: Int): Int = {
+        
+        def recurFunc(nums: Array[Int], k: Int): Int = {
+            //println(nums.mkString(","))
+            if(nums.size == 1)
+                nums(0)
+            else {
+                val piv = nums(0)
+                val largerThan = nums.filter(x => x > piv)
+                
+                if(largerThan.size >= k)
+                    recurFunc(largerThan, k)
+                else {
+                    val smallerThan = nums.filter(x => x < piv)
+                    
+                    if(nums.size - smallerThan.size >= k)
+                        piv
+                    else
+                        recurFunc(smallerThan, k - (nums.size - smallerThan.size))
+                }
+            }
+        }
+        
+        recurFunc(nums, k)
+    }
+}
