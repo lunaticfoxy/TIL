@@ -15,6 +15,9 @@
   - 적당히 나눠서 가져올것
 - 실제 사용 객체 예시
 ```python
+from impala.dbapi import connect
+from impala.util import as_pandas
+
 class HiveConn():
     def __init__(self):
         self.conn=connect(host='Hive서버주소',
