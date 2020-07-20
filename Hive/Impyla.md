@@ -28,12 +28,12 @@ class HiveConn():
         
         self.cursors = dict()
     
-    def setTableCursor(self, dbName, tableName):  // 데이터를 가져올 커서 지정, 데이터를 나눠서 가져오려고 커서만 만들어둠
+    def setTableCursor(self, dbName, tableName):  # 데이터를 가져올 커서 지정, 데이터를 나눠서 가져오려고 커서만 만들어둠
         cursor = self.conn.cursor()
         cursor.execute("select * from " + dbName + "." + tableName)
         self.cursors[dbName + "." + tableName] = cursor
     
-    def getTableData(self, dbName, tableName, count): // 지정된 커서에서 count개 만큼 데이터 가져옴
+    def getTableData(self, dbName, tableName, count): # 지정된 커서에서 count개 만큼 데이터 가져옴
         return self.cursors[dbName + "." + tableName].fetchmany(count)
 ```
     
