@@ -32,27 +32,27 @@ public class ScoreRecord {
 
 /* 1. 출력형태: 목록 형태로 출력하는 클래스 */
 public class DataSheetView {
-	private ScoreRecord scoreRecord;
-	private int viewCount;
+  private ScoreRecord scoreRecord;
+  private int viewCount;
 
-	public DataSheetView(ScoreRecord scoreRecord, int viewCount) {
-		this.scoreRecord = scoreRecord;
-		this.viewCount = viewCount;
-	}
+  public DataSheetView(ScoreRecord scoreRecord, int viewCount) {
+    this.scoreRecord = scoreRecord;
+    this.viewCount = viewCount;
+  }
 
-	// 점수의 변경을 통보받음
-	public void update() {
-		List<Integer> record = scoreRecord.getScoreRecord(); // 점수를 조회함
-		displayScores(record, viewCount); // 조회된 점수를 viewCount 만큼만 출력함
-	}
+  // 점수의 변경을 통보받음
+  public void update() {
+    List<Integer> record = scoreRecord.getScoreRecord(); // 점수를 조회함
+    displayScores(record, viewCount); // 조회된 점수를 viewCount 만큼만 출력함
+  }
 
-	private void displayScores(List<Integer> record, int viewCount) {
-		System.out.println("List of " + viewCount + " entries: ");
-		for (int i = 0; i < viewCount && i < record.size(); i++) {
-			System.out.println(record.get(i) + " ");
-		}
-		System.out.println();
-	}
+  private void displayScores(List<Integer> record, int viewCount) {
+    System.out.println("List of " + viewCount + " entries: ");
+    for (int i = 0; i < viewCount && i < record.size(); i++) {
+      System.out.println(record.get(i) + " ");
+    }
+    System.out.println();
+  }
 }
 
 
@@ -107,6 +107,124 @@ public class Client {
     - void detatch(Observer observer) : 옵저버 해제
     - void notifyObservers() : 옵저버들에게 데이터 갱신 알림
 
-- 데이터 저장 클래스는 Subject를 상속받아 정의
-- 
+- 데이터 저장 클래스는 Subject를 상속받아 정의: ConcreateSubject라 부름
+  - 데이터 저장공간 선언
+  - 데이터를 갱신하기 위한 함수 정의 (set, update, etc ...)
+    - 데이터 갱신시마다 notifyObservers 호출
+  - 데이터를 전달하는 함수 정의 (get)
+
+- 뷰 클래스는 Observer를 상속받아 정의: ConcreateObserver라 
+  - 다른 부분은 구현 동일
+
+- 뷰 클래스가 변경되더라도 Subject 클래스에서는 알 필요 없음
+  - 동일한 Observer 객체로 
+```java
+/* 추상화된 통보 대상 */
+public interface Observer {
+  // 데이터 변경을 통보했을 때 처리하는 메서드
+  public abstract void update();
+}
+
+/* 추상화된 변경 관심 대상 데이터 */
+// 즉, 데이터에 공통적으로 들어가야하는 메서드들 -> 일반화
+public abstract class Subject {
+  // 추상화된 통보 대상 목록 (즉, 출력 형태에 대한 Observer)
+  private List<Observer> observers = new ArrayList<Observer>();
+
+  // 통보 대상(Observer) 추가
+  public void attach(Observer observer) { observers.add(observer);}
+  // 통보 대상(Observer) 제거
+  public void detach(Observer observer) { observers.remove(observer);}
+  // 각 통보 대상(Observer)에 변경을 통보. (List<Observer>객체들의 update를 호출)
+  public void notifyObservers() {
+      for (Observer o : observers) {
+          o.update();
+      }
+  }
+}
+
+/* 구체적인 변경 감시 대상 데이터 */
+// 출력형태 2개를 가질 때
+public class ScoreRecord extends Subject{
+  private List<Integer> scores = new ArrayList<Integer>(); // 점수를 저장함
+  // 새로운 점수를 추가 (상태 변경)
+  public void addScore(int score) {
+      scores.add(score); // scores 목록에 주어진 점수를 추가함
+      notifyObservers(); // scores가 변경됨을 각 통보 대상(Observer)에게 통보함
+  }
+  public List<Integer> getScoreRecord() { return scores; }
+}
+
+
+/* 1. 출력형태: 목록 형태로 출력하는 클래스 */
+public class DataSheetView implements Observer {
+  private ScoreRecord scoreRecord;
+  private int viewCount;
+
+  public DataSheetView(ScoreRecord scoreRecord, int viewCount) {
+    this.scoreRecord = scoreRecord;
+    this.viewCount = viewCount;
+  }
+
+  // 점수의 변경을 통보받음
+  public void update() {
+    List<Integer> record = scoreRecord.getScoreRecord(); // 점수를 조회함
+    displayScores(record, viewCount); // 조회된 점수를 viewCount 만큼만 출력함
+  }
+
+  private void displayScores(List<Integer> record, int viewCount) {
+    System.out.println("List of " + viewCount + " entries: ");
+    for (int i = 0; i < viewCount && i < record.size(); i++) {
+      System.out.println(record.get(i) + " ");
+    }
+    System.out.println();
+  }
+}
+
+
+/* 2. 출력형태: 최소/최대 값만을 출력하는 형태의 클래스 */
+public class MinMaxView implements Observer {
+  private ScoreRecord scoreRecord;
+  // getScoreRecord()를 호출하기 위해 ScoreRecord 객체를 인자로 받음
+  public MinMaxView(ScoreRecord scoreRecord) {
+   this.scoreRecord = scoreRecord;
+  }
+  // 점수의 변경을 통보받음
+  public void update() {
+   List<Integer> record = scoreRecord.getScoreRecord(); // 점수를 조회함
+   displayScores(record); // 최소값과 최대값을 출력함
+  }
+  // 최소값과 최대값을 출력함
+  private void displayScores(List<Integer> record) {
+   int min = Collections.min(record, null);
+   int max = Collections.max(record, null);
+   System.out.println("Min: " + min + ", Max: " + max);
+  }
+}
+
+/* 실행이 일어나는 클라이언트 클래스 */
+public class Client {
+  public static void main(String[] args) {
+      ScoreRecord scoreRecord = new ScoreRecord();
+
+      // 3개까지의 점수만 출력함
+      DataSheetView dataSheetView = new DataSheetView(scoreRecord, 3);
+      // 최대값, 최소값만 출력함
+      MinMaxView minMaxView = new MinMaxView(scoreRecord);
+
+      // 각 통보 대상 클래스를 Observer로 추가
+      scoreRecord.attach(dataSheetView);
+      scoreRecord.attach(minMaxView);
+
+      // 10 20 30 40 50을 추가
+      for (int index = 1; index <= 5; index++) {
+          int score = index * 10;
+          System.out.println("Adding " + score);
+          // 추가할 때마다 최대 3개의 점수 목록과 최대/최소값이 출력됨
+          scoreRecord.addScore(score);
+      }
+  }
+}
+```
+
 
