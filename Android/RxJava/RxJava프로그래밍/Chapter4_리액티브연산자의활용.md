@@ -350,6 +350,7 @@ sourceScaned.subscribe(Log:i);
 ### 4.3.1 zip() 함수
 - 2개 이상의 Observable을 결합 가능
 - 결합된 Observable이 모두 발행되어야 구독자에게 발행된 데이터 전달
+  - Observable의 
 - 사용법
   - param 1, 2, ... : 결합할 Observable들
   - param 마지막 : 결합 방법에 대한 함수
@@ -407,4 +408,5 @@ CommonUtils.sleep(1000);
   - 예제 생략
   
 - zipWith 함수
-  - zip과 동일하게 사용
+  - zip은 팩토리 함수, zipWith은 Observable 객체의 메소드
+  - zipWith은 "주체객체.zipWith(대상객체, 결합방법)" 형태로 사용
