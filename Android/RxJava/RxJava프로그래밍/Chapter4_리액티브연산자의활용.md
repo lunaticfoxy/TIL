@@ -350,7 +350,8 @@ sourceScaned.subscribe(Log:i);
 ### 4.3.1 zip() 함수
 - 2개 이상의 Observable을 결합 가능
 - 결합된 Observable이 모두 발행되어야 구독자에게 발행된 데이터 전달
-  - Observable의 
+  - Observable의 길이는 짧은쪽을 따라감
+  - 발생 시간은 늦는쪽을 따라감
 - 사용법
   - param 1, 2, ... : 결합할 Observable들
   - param 마지막 : 결합 방법에 대한 함수
@@ -410,3 +411,193 @@ CommonUtils.sleep(1000);
 - zipWith 함수
   - zip은 팩토리 함수, zipWith은 Observable 객체의 메소드
   - zipWith은 "주체객체.zipWith(대상객체, 결합방법)" 형태로 사용
+
+
+### 4.3.2 combineLastest() 함수
+- 조합된 Observable중 발행이 일어날 때 마다 새로 계산해서 구독자에게 발행
+  - 길이나 시간 동기화 할 필요 없음
+  - 모든 Observable이 onComplete 되면 onComplete 전달
+```java
+String[] data1 = {"6", "7", "4", "2"}
+String[] data2 = {"D", "S", "P"}
+
+Observable<String> source = Observable.combineLastest(
+  Observable.fromArray(data1)
+    .zipWith(Observable.interval(100L, TimeUnit.MIILISECONDS), (d1, d2) -> d1),
+  Observable.fromArray(data2)
+    .zipWith(Observable.interval(150L, 200L, TimeUnit.MIILISECONDS), (d1, d2) -> d1), 
+  (v1, v2) -> v1 + "-" + v2
+);
+
+source.subscribe(Log::i);
+CommonUtils.sleep(1000);
+// RxComputationThreadPool-2 | value = 6-D
+// RxComputationThreadPool-1 | value = 7-D
+// RxComputationThreadPool-1 | value = 4-D
+// RxComputationThreadPool-2 | value = 4-S
+// RxComputationThreadPool-1 | value = 2-S
+// RxComputationThreadPool-2 | value = 2-P
+// 앞의 값이 변할때는 스레드 1, 뒤의 값이 변할때는 스레드 2에서 도는것 확인 가능
+```
+
+- 실습 예제: 리액티브 연산자로 합계 구하기
+  - 실시간으로 값 입력시 즉시 값 합계를 구해주는것도 combineLastest를 통해 구현 가능
+  - 여기서는 userInput을 사용해서 했는데 뭐 어떻게든 하면 됨'
+  - 예제 생략
+
+
+### 4.3.3 merge() 함수
+- 결합된 Observable 사이에 연산 없이 각각이 값을 발행할때마다 그대로 넘겨줌
+```java
+String[] data1 = {"1", "3"};
+String[] data2 = {"2", "4", "6"};
+
+Observable>String> source1 = Observable.interval(0L, 100L, TimeUnit.MILLISECONDS) // 100ms마다 data1값 발행
+  .map(Long::intValue)
+  .map(idx -> data1[idx])
+  .take(data1.length);
+
+Observable<String> source2 = Observable.interval(50L, TimeUnit.MILLISECONDS)      // 50ms 마다 data2값 발행
+  .map(Long::intValue)
+  .map(idx -> data2[idx])
+  .take(data2.length);
+
+Observable<String> source = Observable.merge(source1, source2);                   // data1, data2 모두 발행
+
+source.subscribe(Log::i);
+CommonUtils.sleep(1000);
+// RxComputationThreadPool-1 | value = 1
+// RxComputationThreadPool-2 | value = 2
+// RxComputationThreadPool-1 | value = 3
+// RxComputationThreadPool-2 | value = 4
+// RxComputationThreadPool-2 | value = 6
+// source1 발행시와 source2 발행시 스레드가 다름
+```
+
+
+### 4.3.4 concat() 함수
+- 앞의 Observable이 onComplete 되면 뒤의 Observable을 이어 붙여줌
+- 앞의 Observable이 종료되지 않으면 뒤의 Observable은 영원히 대기하므로 메모리 누수 위험 존재
+- 예제 생략
+
+
+
+
+## 4.4 조건 연산자
+
+### 4.4.1 amb() 함수
+- 여러 Observable중 가장 먼저 데이터를 발행하는 Observable 선택
+  - 이후 해당 Observable의 값만 발행
+  - 선택된 Observable만 onComplete 되면 전체 onComplete
+- Iterable<Observable>을 입력으로 받음
+  - 조건에 넣을 Observable들을 리스트 등으로 묶어 한번에 전달
+
+```java
+String data1 = {"1", "3", "5"};
+String data2 = {"2", "4"};
+
+List<Observable<String>> source = Arrays.asList(
+  Observable.fromArray(data1),                                    // 1,3,5 를 발행
+  Observable.fromArray(data2).delay(100L, TimeUnit.MILLISECONDS)  // 100ms 후 2,4를 발행
+);
+
+Observable.amb(sources).subscribe(Log::i);
+CommonUtils.sleep(1000);
+// main | value = 1
+// main | value = 3
+// main | value = 5
+```
+
+### 4.4.2 takeUntil() 함수
+- take와 동일하지만 종료 조건을 타 Observable의 값 발행 여부로 결정
+- skipWhile 도 유사하게 동작하니 참조
+```java
+String[] data = {"1", "2", "3", "4", "5", "6"};
+
+Observable<String> source = Observable.fromArray(data)
+  .zipWith(Observable.interval(100L, TimeUnit.MILLISECONDS), (val, notUSed) -> val)   // 100ms 마다 1,2,3,5,6 발행
+  .takeUntil(Observable.timer(500L, TimeUnit.MILLISECONDS))                           // 500ms 후 0 발행
+
+source.subscribe(Log::i);
+CommonUtils.sleep(1000);
+// RxComputationThreadPool-2 | value = 1
+// RxComputationThreadPool-2 | value = 2
+// RxComputationThreadPool-2 | value = 3
+// RxComputationThreadPool-2 | value = 4
+```
+
+### 4.4.3 skipUntil() 함수
+- takeUntil과 정 반대
+
+```java
+String[] data = {"1", "2", "3", "4", "5", "6"};
+
+Observable<String> source = Observable.fromArray(data)
+  .zipWith(Observable.interval(100L, TimeUnit.MILLISECONDS), (val, notUSed) -> val)   // 100ms 마다 1,2,3,5,6 발행
+  .skipUntil(Observable.timer(500L, TimeUnit.MILLISECONDS))                           // 500ms 후 0 발행
+
+source.subscribe(Log::i);
+CommonUtils.sleep(1000);
+// RxComputationThreadPool-2 | value = 5
+// RxComputationThreadPool-2 | value = 6
+```
+
+
+### 4.4.4 all() 함수
+- 조건에 모두 맞으면 true, 하나라도 틀리면 false 발행
+```java
+String[] data = {"1-B", "2-B", "3-B", "4-B"};
+
+Single<Boolean> source = Observable.fromArray(data)
+  .map(Shape::getShape)        // 대충 x-y 형태에서 y 가져오는 함수
+  .all(x -> x.equals("B"));    // 모두 "B" 인지 체크
+
+source.subscribe(Log::i);
+// main | value = true
+```
+
+
+
+## 4.5 수학 및 기타 연산자
+### 4.5.1 수학 함수
+- build.gradle 파일의 dependencies 부분에 다음 코드 추가
+  - compile "com.github.akarnokd:rxjava2-extensions:0.17.6"
+    - 버전은 알아서 조정할것
+- 함수 종류
+  - count() : Observable에서 발행한 데이터 수 리턴
+  - 이외에도 max, min, sumInt, averageDouble 등 존재
+  
+### 4.5.2 delay() 함수
+- 말 그대로 delay를 주는 함수
+- Observable 생성이 아닌 기존 Observable에 붙어 보조 역할을 하는 유틸리티 연산자
+- 예제 생략
+
+
+### 4.5.3 timeIntervals() 함수
+- 이전값을 발행한뒤 얼마나 시간이 흘렀는지 알려줌
+- Timed<T> 객체에 시간 값 저장
+  - T는 값의 타입
+  - 시간은 long 타입
+  - 내부 함수
+    - T value() : 값 리턴
+    - TimeUnit unit() : 시간단위 리턴
+    - long time() : 지난 시간 리턴
+    - long time(TimeUnit unit): 지난 시간 지정된 단위로 리턴
+  
+```java
+String[] data = {"1", "3", "7"};
+
+CommonUtils.exampleStart();
+Observable<Timed<String>> source = Observable.fromArray(data)
+  .delay(item -> {
+    CommonUtils.doSomething();        // 아무일 없이 랜덤하게 시간 딜레이후 끝나는 함수
+    return Observable.just(item);
+  })
+  .timeIntervals();
+
+source.subscribe(Log::it);
+CommonUtils.sleep(1000);
+// main | 263 | value = Timed[time=80, unit=MILLISECONDS, value=1]
+// main | 312 | value = Timed[time=49, unit=MILLISECONDS, value=3]
+// main | 324 | value = Timed[time=12, unit=MILLISECONDS, value=7]
+```
