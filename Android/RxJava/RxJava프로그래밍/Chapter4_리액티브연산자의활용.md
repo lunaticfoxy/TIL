@@ -226,6 +226,94 @@ source2.subscribe(val -> Log.i("Subscriber #4:" + val)                     // �
 
 ### 4.1.6 repaet() 함수
 - 지정된 횟수만큼 연속 발행
+  - 횟수 미지정시 무한히 발행
 - 서버에 heart beat를 보낼때 자주 사용
+```java
+String[] balls = {"1", "3", "5"}
+Observable<String> source = Observable.fromArray(balls).repaet(3);  // 1,3,5를 3번 반복해서 발행
+
+source.doOnComplete(() -> Log.d("onComplete"))                      // onComplete 체크를 위한 출력값 지정
+  .subscribe(Log::i);                                               // 발행 값 출력
+// main | value = 1
+// main | value = 3
+// main | value = 5
+// main | value = 1
+// main | value = 3
+// main | value = 5
+// main | value = 1
+// main | value = 3
+// main | value = 5
+// main | debug = onComplete
+```
+
+- 실습 예제: heart beat 구현하기
+  - 2초마다 서버에 ping 보내기
+  - timer와 repeat의 조합
+```java
+CommonUtils.exampleStart();
+String.serverUrl = "https://api.github.com/zen";
+
+// 2초 간격으로 서버에 ping 보내기
+Observable.timer(2, TimeUnit.SECONDS)
+  .map(val -> servalUrl)
+  .map(OkHttpHelper::get)                                 // 대충 주어진 주소에 get request 날리고 결과 값 파싱해서 리턴하는 함수
+  .repeat()                                               // 무한히 반복할거다
+  .subscribe(res -> Log.it("Ping Result : " + res));      // 결과는 로그로 찍어라
+
+CommonUtils.sleep(10000);
+// RxComputationThreadPool - 1 | 4409 | value = Ping Result : Blah Blah
+// RxComputationThreadPool - 2 | 6639 | value = Ping Result : Blah Blah
+// RxComputationThreadPool - 3 | 8930 | value = Ping Result : Blah Blah
+```
 
 
+
+## 4.2 변환 연산자
+
+### 4.2.1 concatMap() 함수
+- flatMap과 유사하지만 순서 보장
+  - flatMap은 연산 속도때문에 순서가 보장되지 않을 수 있음
+  - 단, 속도는 flatMap이 훨씬 빠름
+    - 블록 없이 연산 종료후 바로 발행
+    - concatMap은 앞의 발행이 끝나야 다음값이 발행되므로 블로킹 발생
+- 예제 생략
+
+
+### 4.2.2 switchMap() 함수
+- flatMap과 유사하지만 앞의 값이 발행되기전에 새로운 값이 들어오면 기존 작업 중단
+- "최신 값만" 중요할 때 사용
+- 예제 생략
+
+
+### 4.2.3 groupBy() 함수
+- 어떤 기준으로 단일 Observable을 여러개의 Observable 그룹 (GroupedObservable) 으로 변환
+- GroupedObservable에는 key, value 존재
+  - key: 그룹으로 묶은 기준 값
+  - value: 묶인 객체
+```java
+String[] obs = {"6-B", "4-B", "2-T", "2-B", "6-T", "4-T"};
+Observable<GroupedObservable<String, String>> source = Observable.fromArray(objs)
+                                                                .groupBy(CommonUtils.getShape); // CommonUtils.getShape: 대충 - 뒤에 붙은 값 리턴하는 함수
+                                                                                                // 여기서는 -T 붙은애들끼리 묶이고 -B 붙은 애들끼리 묶임
+                                                                                                // 실제 발행되는 값은 그룹으로 묶인값
+                                                                                                
+source.subscribe(obs -> {                                                                       // source를 구독하면 GroupedObservable을 받아 obs로 넘김
+  obj.subscribe(val -> System.out.println("GROUP:" + obj.getKey() + "\t Value:" + val));        // obs로 넘어온 GroupedObservable을 다시 구독
+});
+
+// GROUP:B    Value:6-B
+// GROUP:B    Value:4-B
+// GROUP:T    Value:2-T
+// GROUP:B    Value:2-B
+// GROUP:T    Value:6-T
+// GROUP:T    Value:4-T
+// 그룹간 출력 순서는 보장되지 않음
+
+source.subscribe(obs -> {                                                                       // source를 구독하면 GroupedObservable을 받아 obs로 넘김
+  obj.filter(val -> obs.getKey().equals("B"))                                                   // 그룹 중 B만 남김
+     .subscribe(val -> System.out.println("GROUP:" + obj.getKey() + "\t Value:" + val));        // obs로 넘어온 GroupedObservable을 다시 구독
+});
+// GROUP:B    Value:6-B
+// GROUP:B    Value:4-B
+// GROUP:B    Value:2-B
+```
