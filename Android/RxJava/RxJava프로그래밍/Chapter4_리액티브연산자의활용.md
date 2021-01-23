@@ -30,10 +30,11 @@
     - Integer 아님
     - long 값이 아닌 Long 객체
   - 파라미터로 초기 딜레이, 간격, 시간 단위 조정 가능
-- 별도의 Support 스레드에서 시간을 조정하므로 메인 쓰레드가 블로킹시에도 동작
+- 별도의 Support 스레드에서 시간을 발행하므로 메인 쓰레드가 블로킹시에도 동작
 - 영구 동작이 기본
   - 폴링 용도로 자주 사용
-  - take로 
+  - take로 동작 횟수 지정 가능
+    - 횟수 만큼 동작 후 onComplete 
 ```java
 public class CommonUtils {                 // 앞으로 자주 사용할 임의의 시간 측정 클래스
   // 실행시간 표시를 위한 정적 변수
@@ -57,7 +58,9 @@ class Log {                               // 앞으로 자주 사용할 임의�
     System.out.println(getThreadName() + " | " + time + " | " + "value = " + obj; // 로그를 출력: "동작스레드 | 시간 | 값" 형태
   }
   
-  
+  public static void i(Object obs) {
+    System.out.println(getThreadName() + " | " + "value = " + obj; // 로그를 출력: "동작스레드 | 값" 형태
+  }  
 }
 
 
@@ -99,6 +102,130 @@ CommonUtils.sleep(1000);    // 스레드가 죽지 않게 하기 위해 슬립
 
 ### 4.1.2 timer() 함수
 - interval과 유사하지만 한번만 실행
-- 일정 시간 후 한 개의 데이터만 발행하고 onComplete 발생
+  - 일정 시간 후 한 개의 데이터만 발행하고 onComplete 발생
+- 파라미터로 지연시간, 시간단위를 입력받음
+- 발생시 0L 값 하나 전달 (사실상 큰 의미 없음)
+```java
+CommonUnits.exampleStart(); // 시작 시간을 표시
+
+Observable<Long> source = Observable.timer(500L, TimeUnit.MILLISECONDS)   // 500ms 지연 후 동작
+  .map(notUsed -> {
+    return new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(new Date()) // 현재 날짜 리턴
+  });
+
+source.subscribe(Log::it);  // 발행 될때 로그 출력
+
+CommonUtils.sleep(1000);    // 스레드가 죽지 않게 하기 위해 슬립
+
+// RxComputationThreadPool-1 | 739 | value = 2021/01/24 21:15:54
+```
+
+
+### 4.1.3 range() 함수
+- 주어진 값 n 부터 m 개의 Integer 객체 발행
+  - 시간 관련된 함수와 다르게 Integer 임 (Long 아님)
+- 메인 스레드에서 동작
+```java
+
+Observable<Long> source = Observable.range(1, 10)   // 1부터 10까지 발행
+  .filter(number -> number % 2 == 0);               // 발행값이 짝수인 경우에만 구독자한테 전달
+
+source.subscribe(Log::i);  // 발행 될때 로그 출력
+// main | value = 2
+// main | value = 4
+// main | value = 6
+// main | value = 8
+// main | value = 10
+```
+
+
+### 4.1.4 intervalRange() 함수
+- interval과 range의 혼합
+  - interval처럼 일정 간격으로 데이터 발행
+  - range처럼 범위에 대항하는 값만 발행 후 onComplete
+- Long 타입 리턴
+- 별도의 쓰레드에서 동작
+
+```java
+Observable<Long> source = Observable.invervalRange(1, 5, 100L, 100L, TimeUnit.MILLISECONDS);  // 1부터 5개의 숫자를 100ms 지연 후 100ms 마다 발행
+
+source.subscribe(Log::i);                                                                     // 발행 될때 로그 출력
+
+CommonUtils.sleep(1000);                                                                      // 스레드가 죽지 않게 하기 위해 슬립
+// RxComputationThreadPool-1 | value = 1
+// RxComputationThreadPool-1 | value = 2
+// RxComputationThreadPool-1 | value = 3
+// RxComputationThreadPool-1 | value = 4
+// RxComputationThreadPool-1 | value = 5
+```
+
+- interval로 intervalRange만들기
+  - interval과 map, take를 조합하여 동일한 기능을 하는 함수 구현 가능
+```java
+
+Observable<Long> source = Observable.inverval(100L, TimeUnit.MILLISECONDS);  // 100ms 지연 후 100ms 마다 0부터 발행
+  .map(val -> val + 1)                                                       // 발행값에 1 추가
+  .take(5);                                                                  // 5개만 발행
+
+source.subscribe(Log::i);                                                    // 발행 될때 로그 출력
+
+CommonUtils.sleep(1000);                                                     // 스레드가 죽지 않게 하기 위해 슬립
+// RxComputationThreadPool-1 | value = 1
+// RxComputationThreadPool-1 | value = 2
+// RxComputationThreadPool-1 | value = 3
+// RxComputationThreadPool-1 | value = 4
+// RxComputationThreadPool-1 | value = 5
+```
+
+
+### 4.1.5 defer() 함수
+- subscribe가 호출되는 순간 (= 구독자가 요청을 보내는 순간) Observable 생성
+  - subscribe를 호출하는 순간 callable이 호출
+  - Observable의 생성 자체를 원할때까지 미룰 수 있음
+    - 이미 생성된 Observable의 발행을 미루는것과 살짝 다름
+
+```java
+Iterator<String> numbers = Arrays.asList("1", "3", "5", "6").iterator();   // [1,3,5,6] 으로 이루어진 리스트의 이터레이터를 리턴
+
+// 번호를 발행하는 Observable 생성
+public Observable<String> getObservable() {
+  if(numbers.hasNext) {                                                    // 이터레이터가 순회할 다음 값이 있으면
+    String number = numbers.next();                                        // 해당 값을 리턴
+    return Observable.just(number);
+  }
+  else                                                                     // 순회활 다음 값이 없으면
+    return Observable.empty();                                             // 빈 값 리턴
+}
+
+Callable<Observable<String>> supplier = () -> getObservable();             // 호출하는 순간에 새로운 Observable을 만드는 Callable 생성
+                                                                           // 호출할때마다 서로 다른 Observable 생김
+/*
+// 아래와 같은 의미
+Callable<Observable<String>> supplier = new Callable<Observable<String>>{
+  @Override
+  Observable<String> call() throws Exception {
+    return getObservable();
+  }
+}
+*/
+
+Observable<String> source = Observable.defer(supplier);                   // defer를 통해 Observable을 만들면 함수 호출 순간에는 실제로 Observable이 생성되지 않음
+source.subscribe(val -> Log.i("Subscriber #1:" + val)                     // 구독자가 들어오는 순간에 실제 Observable 생성 (첫번째 값인 1을 발행하는 Observable)
+source.subscribe(val -> Log.i("Subscriber #2:" + val)                     // 구독자가 들어오는 순간에 실제 Observable 생성 (두번째 값인 3을 발행하는 Observable)
+// main | value = Subscriber #1:1
+// main | value = Subscriber #2:3
+
+
+Observable<String> source2 = getObservable();                              // 직접 getObservable 호출시 바로 Observable이 생성 (세번째 값인 5를 발행하는 Observable)
+source2.subscribe(val -> Log.i("Subscriber #3:" + val)                     // 구독자가 들어오는 순간에 이미 생성된 Observable에서 발행만 일어남 (5 발행)
+source2.subscribe(val -> Log.i("Subscriber #4:" + val)                     // 구독자가 들어오는 순간에 이미 생성된 Observable에서 발행만 일어남 (5 발행)
+// main | value = Subscriber #3:5
+// main | value = Subscriber #4:5
+```
+
+
+### 4.1.6 repaet() 함수
+- 지정된 횟수만큼 연속 발행
+- 서버에 heart beat를 보낼때 자주 사용
 
 
