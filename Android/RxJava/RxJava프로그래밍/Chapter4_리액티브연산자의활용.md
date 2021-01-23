@@ -317,3 +317,94 @@ source.subscribe(obs -> {                                                       
 // GROUP:B    Value:4-B
 // GROUP:B    Value:2-B
 ```
+
+
+### 4.2.4 scan() 함수
+- reduce와 유사하게 값을 종합해서 결과 발행
+- reduce 차이점
+  - 매 연산 시점마다 값 발행 => 중간 결과도 모두 발생
+  - 따라서 Maybe가 아닌 Observable
+
+```java
+String balls[] = {"1", "3", "5"};
+
+Observable<String> sourceReduced = Observable.fromArray(balls)
+  .reduce((b1, b2) -> b2 + "(" + b1 + ")");                         // "뒤의값(앞의값)" 으로 reduce
+
+Observable<String> sourceScaned = Observable.fromArray(balls)
+  .scan((b1, b2) -> b2 + "(" + b1 + ")");                           // "뒤의값(앞의값)" 으로 scan
+
+sourceReduced.subscribe(Log:i);
+// main | value = 5(3(1))
+
+sourceScaned.subscribe(Log:i);
+// main | value = 1
+// main | value = 3(1)
+// main | value = 5(3(1))
+```
+
+
+
+## 4.3 결합 연산자
+
+### 4.3.1 zip() 함수
+- 2개 이상의 Observable을 결합 가능
+- 결합된 Observable이 모두 발행되어야 구독자에게 발행된 데이터 전달
+- 사용법
+  - param 1, 2, ... : 결합할 Observable들
+  - param 마지막 : 결합 방법에 대한 함수
+    - "(1번 Observable, 2번 Observable, ...) -> 결합 연산" 형태의 람다 함수
+
+```java
+String[] shapes = {"B", "P", "S"};
+String[] coloredT = {"2-T", "6-T", "4-T"};
+
+Observable<String> source = Observable.zip(
+  Observable.fromArray(shapes).map(val -> "-" + val),    // 값 앞에 - 붙임
+  Observable.fromArray(coloredT).map(Shape::getColor),   // 대충 "x-y" 형태에서 x만 가져온다는 이야기
+  (suffix, color) -> color + suffix                      // 앞의 두 값을 이어붙인다는 이야기
+);
+
+source.subscribe(Log::i);
+// main | value = 2-B
+// main | value = 6-P
+// main | value = 4-S
+```
+
+- 실습 예제 1: 숫자 결합
+  - 3개의 Observable도 결합 가능
+  - 예제 생략
+  
+- 실습 예제 2: interval 함수를 이용한 시간 결합
+  - 결합된 두 Observable의 발행 시점이 다를때
+  - just는 바로 발행되지만 interval은 일정 시간마다 발행되므로 interval이 발행 될때 just도 하나씩 발행
+  - 단, interval은 무한히 가고 just는 주어진 값만 처리하는데 just에서 onComplete 가 발생하면 interval도 종료
+```java
+Observable<String> source = Observable.zip(
+  Observable.just("RED", "GREEN", "BLUE"),
+  Observable.interval(200L, TimeUnit.MILLISECONDS),
+  (value, i) -> value
+);
+
+CommonUtils.exampleStart();
+source.subscribe(Log::it);
+CommonUtils.sleep(1000);
+// RxComputationThreadPool-1 | 201 | value = RED
+// RxComputationThreadPool-1 | 401 | value = GREEN
+// RxComputationThreadPool-1 | 601 | value = BLUE
+```
+
+- 실습 예제 3: 전기 요금 계산 예제
+  - 기본요금과 전력량요금을 계산하는 Observable을 별도로 생성
+  - 이후 두 Observable을 결합하여 최종 요금 출력
+  - 단, subscribe에서 전력량 출력시 side effect 존재
+    - index 를 사용후 하나씩 증가시켜 subscribe 가 일어나면 프로그램 상태가 바뀜
+  - 예제 생략
+  
+- 실습 예제 4: 부수 효과를 없앤 전기 요금 계산 예제
+  - 사용 전력량도 Observable로 만들어 같이 결합해서 사용
+  - side effect 없이 모든 결과 출력 가능
+  - 예제 생략
+  
+- zipWith 함수
+  - zip과 동일하게 사용
