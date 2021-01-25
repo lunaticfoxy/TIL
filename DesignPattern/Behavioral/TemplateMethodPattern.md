@@ -107,4 +107,133 @@ public class Client {
 ```
 
 ### 적용 방법
+- 구조
+  - AbstractClass
+    - 템플릿 메소드를 정의
+    - 하위 클래스들에서 공통으로 사용할 알고리즘 정의
+    - 하위 클래스에서 구현될 기능을 hook 메소드로 정의
+  - ConcreteClass
+    - 상속받은 hook 메소드의 내부 구현
+
+- 구현 방법 1
+  - 공통 부분을 포함한 상위 클래스를 만들고 이를 상속받아 구현
+```java
+/* HyundaiMotor와 LGMotor의 공통적인 기능을 구현하는 클래스 */
+public abstract class Motor {
+  protected Door door;
+  private MotorStatus motorStatus; // 공통 2. motorStatus 필드
+
+  public Motor(Door door) { // 공통 1. Door 클래스와의 연관관계
+    this.door = door;
+    motorStatus = MotorStatus.STOPPED;
+  }
+  // 공통 3. etMotorStatus, setMotorStatus 메서드
+  public MotorStatus getMotorStatus() { return MotorStatus; }
+  protected void setMotorStatus(MotorStatus motorStatus) { this.motorStatus = motorStatus; }
+}
+
+/* Motor를 상속받아 HyundaiMotor 클래스를 구현 */
+public class HyundaiMotor extends Motor{
+  public HyundaiMotor(Door door) { super(door); }
+  private void moveHyundaiMotor(Direction direction) {
+    // Hyundai Motor를 구동시킴
+  }
+  public void move(Direction direction) {
+    MotorStatus motorStatus = getMotorStatus();
+    
+    // 이미 이동 중이면 아무 작업을 하지 않음
+    if (motorStatus == MotorStatus.MOVING) return;
+
+    DoorStatus doorStatus = door.getDoorStatus();
+    
+    // 만약 문이 열려 있으면 우선 문을 닫음
+    if (doorStatus == DoorStatus.OPENED) door.close();
+
+    // Hyundai 모터를 주어진 방향으로 이동시킴
+    moveHyundaiMotor(direction);
+
     // 모터 상태를 이동 중으로 변경함
+    setMotorStatus(MotorStatus.MOVING);
+  }
+}
+
+/* Motor를 상속받아 LGMotor 클래스를 구현 */
+public class LGMotor extends Motor{
+  public LGMotor(Door door) { super(door); }
+  private void moveLGMotor(Direction direction) {
+    // LG Motor를 구동시킴
+  }
+  public void move(Direction direction) {
+    MotorStatus motorStatus = getMotorStatus();
+    
+    // 이미 이동 중이면 아무 작업을 하지 않음
+    if (motorStatus == MotorStatus.MOVING) return;
+
+    DoorStatus doorStatus = door.getDoorStatus();
+    
+    // 만약 문이 열려 있으면 우선 문을 닫음
+    if (doorStatus == DoorStatus.OPENED) door.close();
+
+    // LG 모터를 주어진 방향으로 이동시킴
+    moveLGMotor(direction); // (이 부분을 제외하면 HyundaiMotor의 move 메서드와 동일)
+
+    // 모터 상태를 이동 중으로 변경함
+    setMotorStatus(MotorStatus.MOVING);
+  }
+}
+```
+
+- 구현방법 2
+  - 부분중복되는 메소드도 세부 메소드로 나누고 상속을 활용해 코드 중복 최소화
+```java
+/* HyundaiMotor와 LGMotor의 공통적인 기능을 구현하는 클래스 */
+public abstract class Motor {
+  protected Door door;
+  private MotorStatus motorStatus; // 공통 2. motorStatus 필드
+
+  public Motor(Door door) { // 공통 1. Door 클래스와의 연관관계
+    this.door = door;
+    motorStatus = MotorStatus.STOPPED;
+  }
+  // 공통 3. etMotorStatus, setMotorStatus, moveMotor 메서드
+  public MotorStatus getMotorStatus() { return MotorStatus; }
+  protected void setMotorStatus(MotorStatus motorStatus) { this.motorStatus = motorStatus; }
+  protected void moveMotor(Direction direction);
+  
+  // HyundaiMotor와 LGMotor의 move 메서드에서 공통되는 부분만을 가짐
+  public void move(Direction direction) {
+    MotorStatus motorStatus = getMotorStatus();
+    // 이미 이동 중이면 아무 작업을 하지 않음
+    if (motorStatus == MotorStatus.MOVING) return;
+
+    DoorStatus doorStatus = door.getDoorStatus();
+    // 만약 문이 열려 있으면 우선 문을 닫음
+    if (doorStatus == DoorStatus.OPENED) door.close();
+
+    // 모터를 주어진 방향으로 이동시킴
+    moveMotor(direction); // (HyundaiMotor와 LGMotor에서 오버라이드 됨)
+    // 모터 상태를 이동 중으로 변경함
+    setMotorStatus(MotorStatus.MOVING);
+  }
+}
+
+/* Motor를 상속받아 HyundaiMotor 클래스를 구현 */
+public class HyundaiMotor extends Motor{
+  public HyundaiMotor(Door door) { super(door); }
+  
+  @Override
+  protected void moveMotor(Direction direction) {
+    // Hyundai Motor를 구동시킴
+  }
+}
+
+/* Motor를 상속받아 LGMotor 클래스를 구현 */
+public class LGMotor extends Motor{
+  public LGMotor(Door door) { super(door); }
+  
+  @Override
+  protected void moveMotor(Direction direction) {
+    // LG Motor를 구동시킴
+  }
+}
+```
