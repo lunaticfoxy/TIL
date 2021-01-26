@@ -9,3 +9,258 @@ Observable.just("Hello", "RxJava 2!!").subscribe(Log::i);
   - 일반적인 경우 대부분의 기능이 main에서 동작
 - 실무에서는 요구사항에 맞게 비동기로 동작할 수 있도록 수정 필요
   - 이때 스케줄러 사용
+  - 스케줄러를 통해 동작할 스레드 지정 가능
+
+
+```java
+String[] objs = {"1-S", "2-T", "3-P"};
+
+Observable<String> source = Observable.fromArray(objs)
+  .doOnNext(data -> Log.v("Observable data = " + data))  // onNext 실행시에 로그 찍기
+  .subscribeOn(Schedulers.newThread())                   // 구독자가 동작할 스레드 지정
+  .observeOn(Schedulers.newThread())                     // Observable의 발행 과정이 어디서 동작할지 지정
+  .map(Shape::flip);
+
+source.subscribe(Log::i);
+CommonUtils.sleep(500);
+// RxNewThreadScheduler - 1 | Original data = 1-S        -> 발행이 새로운 스레드1 에서 일어남
+// RxNewThreadScheduler - 1 | Original data = 2-T
+// RxNewThreadScheduler - 1 | Original data = 3-P
+// RxNewThreadScheduler - 2 | value = (flipped)1-S       -> 구독이 새로운 스레드2 에서 일어남
+// RxNewThreadScheduler - 2 | value = (flipped)2-T
+// RxNewThreadScheduler - 2 | value = (flipped)3-P
+
+Observable<String> source2 = Observable.fromArray(objs)
+  .doOnNext(data -> Log.v("Observable data = " + data))  // onNext 실행시에 로그 찍기
+  .subscribeOn(Schedulers.newThread())                   // 구독자가 동작할 스레드 지정
+  //.observeOn(Schedulers.newThread())                      아까와 다르게 발행 과정에 별도 스레드 생성 안함
+  .map(Shape::flip);
+
+source2.subscribe(Log::i);
+CommonUtils.sleep(500);
+// RxNewThreadScheduler - 3 | Original data = 1-S        -> 발행이 새로운 스레드3 에서 일어남
+// RxNewThreadScheduler - 3 | value = (flipped)1-S       -> 구독도 새로운 스레드3 에서 일어남
+// RxNewThreadScheduler - 3 | Original data = 2-T        -> 한 스레드에서 일어나므로 동작이 순차적
+// RxNewThreadScheduler - 3 | value = (flipped)2-T
+// RxNewThreadScheduler - 3 | Original data = 3-P
+// RxNewThreadScheduler - 3 | value = (flipped)3-P
+```
+
+- 스케줄러 핵심 내용
+  - 스케줄러는 RxJava 코드를 어떤 스레드에서 실행할지 지정 가능
+  - subscribeOn, observeOn 함수를 모두 지정하면 데이터 발행 스레드와 구독 스레드 분리 가능
+  - subscribeOn 함수만 지정하면 모든 흐름을 한 스레드에서 실행되게 지정 가능
+  - 스케줄러를 지정하지 않으면 현재 스레드 (main) 에서 동작 실행
+
+
+## 5.2 스케줄러의 종류
+- 스케줄러 종류
+  - 뉴 스레드 스케줄러: newThread()
+  - 싱글 스레드 스케줄러: single()
+    - 2.x 에서만 지원
+  - 계산 스케줄러: computation()
+  - IO 스케줄러: io()
+  - 트램펄린 스케줄러: trampoline()
+  - 메인 스레드 스케줄러: immediate()
+    - 1.x 에서만 지원
+  - 테스트 스케줄러: test()
+    - 1.x 에서만 지원
+
+
+### 5.2.1 뉴 스레드 스케줄러
+- 가장 기본적인 새 스레드 생성 로직
+- Scheduler.newThread() 로 생성
+  - 불릴때마다 새로운 스레드 생성
+- 가장 단순하지만 계산 스케줄러나 IO 스케줄러로 대체 가능하므로 이를 사용하길 권장
+
+```java
+String[] orgs = {"1", "3", "5"};
+
+Observable.fromArray(orgs)
+  .doOnNext(data -> Log.v("Original data: " + data))
+  .map(data -> "<<" + data + ">>")
+  .subscribeOn(Scheduler.newThread())                 // 새로운 스케줄러에서 구독
+  .subscribe(Log::i);
+
+CommonUtils.sleep(500);
+// RxNewThreadScheduler-1 | Original Value : 1       => 1번 스레드에서 동작
+// RxNewThreadScheduler-1 | value = <<1>>
+// RxNewThreadScheduler-1 | Original Value : 3
+// RxNewThreadScheduler-1 | value = <<3>>
+// RxNewThreadScheduler-1 | Original Value : 5
+// RxNewThreadScheduler-1 | value = <<5>>
+
+Observable.fromArray(orgs)
+  .doOnNext(data -> Log.v("Original data: " + data))
+  .map(data -> "##" + data + "##")
+  .subscribeOn(Scheduler.newThread())                 // 새로운 스케줄러에서 구독
+  .subscribe(Log::i);
+
+CommonUtils.sleep(500);
+// RxNewThreadScheduler-2 | Original Value : 1       => 2번 스레드에서 동직
+// RxNewThreadScheduler-2 | value = ##1##
+// RxNewThreadScheduler-2 | Original Value : 3
+// RxNewThreadScheduler-2 | value = ##3##
+// RxNewThreadScheduler-2 | Original Value : 5
+// RxNewThreadScheduler-2 | value = ##5##
+```
+
+### 5.2.2 계산 스케줄러
+- CPU에 대응하는 계산용 스케줄러
+  - I/O 작업을 하지 않음
+  - 스레드 풀 내의 스레드 개수는 프로세서 수와 동일
+- interval 함수 내부에서 활용하고 있음
+- 계산 스레드중 어디에 할당할지는 내부적으로 결정
+
+```java
+String[] orgs = {"1", "3", "5"};
+
+Observable<String> source = Observable.fromArray(orgs)
+  .zipWith(Observable.interval(100L, TimeUnit.MILLISECONDS), (a, b) -> a);
+
+// 구독 #1
+source.map(item -> "<<" + item + ">>")
+  .subscribeOn(Scheduler.computation())                 // 계산 스레드에서 구독
+  .subscribe(Log::i);
+
+// 구독 #2
+source.map(item -> "##" + item + "##")
+  .subscribeOn(Scheduler.computation())                 // 계산 스레드에서 구독
+  .subscribe(Log::i);
+
+CommonUtils.sleep(500);
+// RxComputationThreadPool-3 | value = <<1>>           => 3번 계산 스레드에서 동작
+// RxComputationThreadPool-4 | value = ##1##           => 4번 계산 스레드에서 동작
+// RxComputationThreadPool-3 | value = <<3>>
+// RxComputationThreadPool-4 | value = ##3##
+// RxComputationThreadPool-3 | value = <<5>>
+// RxComputationThreadPool-4 | value = ##5##
+
+
+// 또는
+
+// RxComputationThreadPool-3 | value = <<1>>           => 3번 계산 스레드에서 동작
+// RxComputationThreadPool-3 | value = ##1##           => 3번 계산 스레드에서 동작
+// RxComputationThreadPool-3 | value = <<3>>
+// RxComputationThreadPool-3 | value = ##3##
+// RxComputationThreadPool-3 | value = <<5>>
+// RxComputationThreadPool-3 | value = ##5##
+```
+
+
+### 5.2.3 IO 스케줄러
+- 네트워크상의 요청 처리나 입출력 작업 실행
+- 필요할 때 마다 스레드 계속 생성
+
+```java
+// C 드라이브 루트 디렉토리에 파일 목록 생성
+String root = "C:\\";
+File[] files = new File(root).listFiles();
+
+Observable<String> source = Observable.fromArray(files)
+  .filter(f -> !f.isDirectory())
+  .map(f -> f.getAbsolutePath())
+  .subscribeOn(Scheduler.io());
+
+source.subscribe(Log::i);
+CommonUtils.sleep(500);
+// RxCachedThreadScheduler-1 | value = c:\bootmgr
+// RxCachedThreadScheduler-1 | value = c:\BOOTNXT
+// RxCachedThreadScheduler-1 | value = c:\TEST.txt
+```
+
+### 5.2.4 트램펄린 스케줄러
+- 새로운 스레드 생성 없이 작업 큐 생성
+  - 스케줄러를 사용하지 않는 경우는 작업 순서 미보장
+  - 트램펄린 스케줄러를 사용하면 작업 순서 보장
+    - 진행중인 작업이 끝난 뒤에 다음 작업 실행
+    - 먼저 구독한 데이터가 먼저 연산
+
+```java
+String[] orgs = {"1", "3", "5"};
+
+Observable<String> source = Observable.fromArray(orgs);
+
+// 구독 #1
+source.subscribeOn(Scheduler.trampolin())               // 트램펄린 스케줄러로 구독
+  .map(item -> "<<" + item + ">>")
+  .subscribe(Log::i);
+
+// 구독 #2
+source.subscribeOn(Scheduler.trampolin())               // 트램펄린 스케줄러로 구독
+  .map(item -> "##" + item + "##")
+  .subscribe(Log::i);
+
+
+CommonUtils.sleep(500);
+// main | value = <<1>>           => 메인스레드에서 동작하며 무조건 앞에 연산되는 것을 보장
+// main | value = <<3>>
+// main | value = <<5>>
+// main | value = ##1##           => 메인스레드에서 동작하며 무조건 뒤에 연산되는 것을 보장
+// main | value = ##3##
+// main | value = ##5##
+```
+
+
+### 5.2.5 싱글 스레드 스케줄러
+- 스레드풀이 아닌 단일 스래드를 새로 생성하여 동작
+  - single이 여러번 불리더라도 한개의 스레드만 생성하고 그 안에서 동작
+- 크게 활용할일은 없음
+
+```java
+String[] orgs = {"1", "3", "5"};
+
+Observable<Integer> numbers = Observable.range(100, 5); // 100, 101, 102, 103, 104 생성
+Observable<String> chars = Observable.range(0, 5)
+  .map(CommonUtils.numberToAlphabet);                   // 대충 A, B, C, D, E 생성한다는 이야기
+
+// 구독 #1
+numbers.subscribeOn(Scheduler.single())                 // 싱글 스케줄러로 구독
+  .subscribe(Log::i);
+
+// 구독 #2
+chars.subscribeOn(Scheduler.single())                   // 싱글 스케줄러로 구독
+  .subscribe(Log::i);
+
+CommonUtils.sleep(500);
+// RxSingleScheduler-1 | value = 100                    => 새로운 싱글 스레드에서 동작
+// RxSingleScheduler-1 | value = 101
+// RxSingleScheduler-1 | value = 102
+// RxSingleScheduler-1 | value = 103
+// RxSingleScheduler-1 | value = 104
+// RxSingleScheduler-1 | value = A                      => 위와 같은 싱글 스레드에서 동작
+// RxSingleScheduler-1 | value = B
+// RxSingleScheduler-1 | value = C
+// RxSingleScheduler-1 | value = D
+// RxSingleScheduler-1 | value = E
+```
+
+
+### 5.2.6 Executor 변환 스케줄러
+- 자바에서 제공하는 Executor 변환하여 스케줄러 생성 가능
+  - 단, 자바의 Executor 동작과 스케줄러의 동작 방법이 다르므로 추천하진 않음
+  - 기존 Executor 재사용 할때만 활용
+
+```java
+final int THREAD_NUM = 10;
+
+String data[] = {"1", "3", "5"};
+Observable<String> source = Observable.fromArray(data);
+Executor executor = Executors.newFixedThreadPool(THREAD_NUM); // 스레드가 10개 있는 스레드풀을 만들고 executor에 할당
+
+source.subscribeOn(Schedulers.from(executer))                 // executer의 스레드 활용
+  .subscribe(Log::i);
+
+source.subscribeOn(Schedulers.from(executer))                 // executer의 스레드 활용
+  .subscribe(Log::i);
+
+CommonUtils.sleep(500);
+// pool-1-thread-1 | value = 1                                => executor의 스레드중 1번 활용
+// pool-1-thread-1 | value = 3
+// pool-1-thread-1 | value = 5
+// pool-1-thread-2 | value = 1                                => executor의 스레드중 2번 활용
+// pool-1-thread-2 | value = 3
+// pool-1-thread-2 | value = 5
+```
+
+
