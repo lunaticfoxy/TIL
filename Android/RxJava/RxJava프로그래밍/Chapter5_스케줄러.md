@@ -12,6 +12,7 @@ Observable.just("Hello", "RxJava 2!!").subscribe(Log::i);
   - 스케줄러를 통해 동작할 스레드 지정 가능
 
 
+
 ```java
 String[] objs = {"1-S", "2-T", "3-P"};
 
