@@ -12,6 +12,7 @@ Observable.just("Hello", "RxJava 2!!").subscribe(Log::i);
   - 스케줄러를 통해 동작할 스레드 지정 가능
 
 
+
 ```java
 String[] objs = {"1-S", "2-T", "3-P"};
 
@@ -264,6 +265,7 @@ CommonUtils.sleep(500);
 ```
 
 
+<<<<<<< HEAD
 ## 5.3 스케줄러를 활용하여 콜백 지옥 벗어나기
 - 1번 서버에 요청을 보내고, 성공 응답시 2번 서버에 요청을 보내서 결과를 받는 애플리케이션
   - 기존 방법대로 구현시
@@ -525,3 +527,6 @@ public class OpenWeatherMapV1 {
   }
 }
 ```
+=======
+ 
+>>>>>>> 16662efe7dcae9b8627bca753eb95210f3dc3946
