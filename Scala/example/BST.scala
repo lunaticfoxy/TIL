@@ -1,4 +1,4 @@
-def BSTRecur(vertexMap: Map[VertexId, Array[(VertexId, Long)]], visited: Set[VertexId], queue: Array[(VertexId, Array[VertexId])], path: Map[VertexId, Array[VertexId]]): Map[VertexId, Array[VertexId]] = {
+def BSTRecur(vertexMap: Map[Int, Array[(Long, Long)]], visited: Set[Int], queue: Array[(Int, Array[Int])], path: Map[Int, Array[Int]]): Map[Int, Array[Int]] = {
       if(queue.size == 0)
         path
       else {
