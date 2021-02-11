@@ -127,9 +127,13 @@ public abstract class Motor {
     this.door = door;
     motorStatus = MotorStatus.STOPPED;
   }
-  // 공통 3. etMotorStatus, setMotorStatus 메서드
+  
+  // 공통 3. etMotorStatus, setMotorStatus 메소드
   public MotorStatus getMotorStatus() { return MotorStatus; }
   protected void setMotorStatus(MotorStatus motorStatus) { this.motorStatus = motorStatus; }
+  
+  // 공통적으로 구현해야 하는 move 메소드
+  public abstract void move(Direction direction);
 }
 
 /* Motor를 상속받아 HyundaiMotor 클래스를 구현 */
@@ -138,6 +142,8 @@ public class HyundaiMotor extends Motor{
   private void moveHyundaiMotor(Direction direction) {
     // Hyundai Motor를 구동시킴
   }
+  
+  @Override
   public void move(Direction direction) {
     MotorStatus motorStatus = getMotorStatus();
     
@@ -163,6 +169,8 @@ public class LGMotor extends Motor{
   private void moveLGMotor(Direction direction) {
     // LG Motor를 구동시킴
   }
+  
+  @Override
   public void move(Direction direction) {
     MotorStatus motorStatus = getMotorStatus();
     
@@ -198,7 +206,7 @@ public abstract class Motor {
   // 공통 3. etMotorStatus, setMotorStatus, moveMotor 메서드
   public MotorStatus getMotorStatus() { return MotorStatus; }
   protected void setMotorStatus(MotorStatus motorStatus) { this.motorStatus = motorStatus; }
-  protected void moveMotor(Direction direction);
+  protected abstract void moveMotor(Direction direction);
   
   // HyundaiMotor와 LGMotor의 move 메서드에서 공통되는 부분만을 가짐
   public void move(Direction direction) {
