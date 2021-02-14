@@ -12,8 +12,12 @@ public class Lamp {
   public void turnOn(){ System.out.println("Lamp On"); }
 }
 
-ublic class Alarm {
+public class Alarm {
   public void start(){ System.out.println("Alarming"); }
+}
+
+public class TV {
+  public void on() {System.out.println("TV On"); }
 }
 
 public class Button {
@@ -26,8 +30,10 @@ public class Client {
   public static void main(String[] args) {
     Lamp lamp = new Lamp();
     Alarm alarm = new Alarm();
+    TV tv = new TV();
     Button lampButton = new Button(lamp);
     Button alarmButton = new Button(alarm);
+    Button tvButton = new Button(tv);
     lampButton.pressed();
     alarmButton.pressed();
   }
@@ -44,12 +50,14 @@ enum Mode { LAMP, ALARM };
 public class Button {
   private Lamp theLamp;
   private Alarm theAlarm;
+  private TV theTV;
   private Mode theMode;
 
   // 생성자에서 버튼을 눌렀을 때 필요한 기능을 인지로 받는다.
-  public Button(Lamp theLamp, Alarm theAlarm) {
+  public Button(Lamp theLamp, Alarm theAlarm, TV tv) {
     this.theLamp = theLamp;
     this.theAlarm = theAlarm;
+    this.tv = tv;
   }
   
   // 램프 모드 또는 알람 모드를 설정
@@ -60,6 +68,7 @@ public class Button {
     switch(theMode) {
      case LAMP: theLamp.turnOn(); break;
      case ALARM: theAlarm.start(); break;
+     case TV: theTV.turnOn(); break;
     }
   }
 }
@@ -89,8 +98,9 @@ public class Button {
   
   // 버튼이 눌리면 주어진 Command의 execute 메서드를 호출한다.
   public void pressed() { theCommand.execute(); }
+}
 
-  public class Lamp {
+public class Lamp {
   public void turnOn(){ System.out.println("Lamp On"); }
 }
 
@@ -104,12 +114,29 @@ public class LampOnCommand implements Command {
   public void execute() { theLamp.turnOn(); }
 }
 
+public class TV {
+    public void turnOn(){ System.out.println("TV On"); }
+}
+
+public class TVOnCommand implements Command {
+    private TV theTV;
+    
+    public TVOnCommand(TV theTV) { this.theTV = theTV; }
+    
+    // Command 인터페이스의 execute 메서드
+    public void execute() { theTV.turnOn(); }
+}
+
+
+
 public class Client {
   public static void main(String[] args) {
     Lamp lamp = new Lamp();
     Command lampOnCommand = new LampOnCommand(lamp);
     Alarm alarm = new Alarm();
     Command alarmStartCommand = new AlarmStartCommand(alarm);
+    TV tv = new TV();
+    Command tvOnCommand = new TVOnCommand(tv);
 
     Button button1 = new Button(lampOnCommand); // 램프 켜는 Command 설정
     button1.pressed(); // 램프 켜는 기능 수행
@@ -118,6 +145,9 @@ public class Client {
     button2.pressed(); // 알람 울리는 기능 수행
     button2.setCommand(lampOnCommand); // 다시 램프 켜는 Command로 설정
     button2.pressed(); // 램프 켜는 기능 수행
+
+    Button button3 = new Button(tvOnCommand)
+    button3.pressed(); // tv 켜짐
   }
 }
 ```
