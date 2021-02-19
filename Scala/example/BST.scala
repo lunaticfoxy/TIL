@@ -14,3 +14,30 @@ def BSTRecur(vertexMap: Map[Int, Array[(Long, Long)]], visited: Set[Int], queue:
         )
       }
     }
+
+
+def BSTIter(start: Long): Map[Long, (List[Long], Long)] = {
+    val queue = new scala.collection.mutable.Queue[(Long, List[Long], Long)]()
+    val path: scala.collection.mutable.Map[Long, (List[Long], Long)] = scala.collection.mutable.Map[Long, (List[Long], Long)]()
+    val visited: scala.collection.mutable.Set[Long] = scala.collection.mutable.Set[Long]()
+
+    queue.enqueue((start, List[Long](), 0L))
+    visited += start
+
+    while(queue.nonEmpty) {
+      val (curId, curPath, curDist) = queue.dequeue()
+      val newPath = curPath ++ List(curId)
+      path.put(curId, (newPath, curDist))
+
+      if(vertexMap.contains(curId)) {
+        vertexMap(curId).foreach{x =>
+          if(!visited.contains(x._1)) {
+            queue.enqueue((x._1, newPath, curDist + 1))
+            visited += x._1
+          }
+        }
+      }
+    }
+
+    path.toMap
+  }
