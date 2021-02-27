@@ -15,3 +15,40 @@
   3. Modularity 계산 후 기존 저장된 Modularity와 비교하여 높으면 현재 상태를 저장
   4. 2~3을 모든 엣지가 사라질때까지 반복
   5. Modularity가 최대인 지점이 가장 모듈화가 잘 된 커뮤니티
+
+```scala
+  def GirvanNewman(): Seq[NeighborGraph] = {
+
+    var edgeCnt = vertexMap.map(_._2.keys.size).sum - 1
+
+    val (src, dst, bc) = NeighborGraph.findMaxBetweennessCentrality(vertexMap)
+    var foundMap = vertexMap
+    var maxModularity: Double = 0.0
+    var next = NeighborGraph.removeEdge(vertexMap, src, dst)
+
+    while(edgeCnt > 0) {
+      val modularity = NeighborGraph.getModularity(next)
+
+      if(modularity > maxModularity) {
+        maxModularity = modularity
+        foundMap = next
+      }
+      else
+        edgeCnt = 0
+
+      val (src, dst, bc) = NeighborGraph.findMaxBetweennessCentrality(next)
+      next = NeighborGraph.removeEdge(next, src, dst)
+      edgeCnt -= 1
+    }
+
+    NeighborGraph.findCommunity(foundMap).map{comm =>
+      val newVertMap = vertexMap.filter(x => comm.contains(x._1))
+        .map(x => x._1 -> x._2.filter(y => comm.contains(y._1)))
+
+      if(newVertMap.isEmpty)
+        NeighborGraph(comm.map(x => (x, Map[Long, Long]())).toMap)
+      else
+        NeighborGraph(newVertMap)
+    }
+  }
+```
