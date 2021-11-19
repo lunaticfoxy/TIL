@@ -38,4 +38,10 @@ def rawToVector(rawData:DataFrame, method:String = "tfidf"): (DataFrame, Int) = 
 
       Row(data, splited, label)
     }, scheme)
+}
+
+// 또는
+val rowsRDD = spark.sparkContext.parallelize(weights.toSeq).map{x => Row(x._1, x._2)}
+val schema: StructType = StructType(Array(StructField("target", DoubleType, nullable = false), StructField("weight", DoubleType, nullable = false)))
+val weightDf: DataFrame = spark.createDataFrame(rowsRDD, schema)
 ```
