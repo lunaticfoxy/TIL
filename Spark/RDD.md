@@ -6,3 +6,9 @@
 
 ### RDD의 union
 - sc.union(Seq(RDD1, RDD2)) 형태로 union이 가능하다
+
+### RDD 문제점
+- RDD는 이미 최소 데이터 단위라 추가 최적화 어려움
+  - 컴파일러 지원 불가능
+  - 코드에따라 성능 하락 발생 가능
+- 가능한 Dataframe 객체 연산으로 전환
