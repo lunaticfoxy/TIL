@@ -75,3 +75,51 @@ val symbol2 = 'String
 
 println(symbol1 eq symbol2) // true
 ```
+
+
+### 여러줄 문자열
+- """문자열""" 형태로 여러줄의 문자열 사용 가능
+  - 이때 인덴테이션이 깨질수 있음
+- 인덴테이션을 맞추기 위해 stripMargin 지원
+  - 토큰 문자를 기준으로 다음라인을 시작
+  - 이후 문자열에 stripMargin 함수를 호출하면 토큰 문자를 기준으로 다음 라인이 시작
+  - 토근 문자는 기본으로 | 이나 stripMargin의 파라미터를 넣어 지정 가능
+```scala
+println {
+  s"""A is
+      not B"""
+}
+/*
+A is
+          not B
+*/
+
+println {
+  s"""A is
+     |not B"""
+    .stripMargin
+}
+/*
+A is
+not B
+*/
+
+println {
+  s"""A is
+      @not B"""
+    .stripMargin('@')
+}
+/*
+A is
+not B
+*/
+
+println {
+  s"""A is
+      @not B"""
+    .stripMargin('@').replaceAll("\n", " ")
+}
+/*
+A is not B
+*/
+```
