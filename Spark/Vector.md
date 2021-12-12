@@ -1,7 +1,9 @@
 #### Spark에서의 벡터
 
 ##### 개요
-- 패키지 위치: org.apache.spark.ml.linalg
+- 패키지 위치
+  - DF 기반: org.apache.spark.ml.linalg
+  - RDD 기반: org.apache.spark.mllib.linalg
 - 용도
   - 말 그대로 수학의 벡터 값을 저장
   - ML 등에 활용
@@ -12,7 +14,9 @@
   
 ##### SparseVector
 - org.apache.spark.ml.linalg.SparseVector
+  - RDD 기반 라이브러리에서는 org.apache.spark.mllib.linalg.SparseVector
 - org.apache.spark.ml.linalg.Vector를 상속받아 생성됨
+  - RDD 기반 라이브러리에서는 org.apache.spark.mllib.linalg.SparseVector
 - 구성
   - size: 벡터 전체 크기
   - indices: 0이 아닌 값의 인덱스 리스트
