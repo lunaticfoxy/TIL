@@ -30,3 +30,15 @@ with TaskGroup('processing_tasks') as processing_tasks:
 
 task_1 >> processing_tasks >> task_4
 ```
+
+
+### 실패시 재시도 방법
+- 파라미터에 retries 옵션을 넣으면 된다
+```python
+args={
+    'owner' : 'Anti',
+    'retries': 5,
+    'retry_delay': timedelta(minutes=2),
+    'start_date':days_ago(1)# 1 means yesterday
+}
+```
