@@ -42,3 +42,10 @@ args={
     'start_date':days_ago(1)# 1 means yesterday
 }
 ```
+
+
+### Execution Date
+- DAG의 자체 실행 시간이 아닌 DAG가 파라미터로 넘겨주는 시간
+- 실행 시간과 배치 작업의 대상 시간이 다른 경우에 유용
+  - excution date만 동일하게 준다면 실제 어느 시점에 실행되더라도 같은 시간에 실행시킨것과 동일하게 동작
+  - 장기간의 데이터 소급에 유리
