@@ -1,5 +1,14 @@
 ## Airflow의 DAG에 관한 내용 정리
 
+### DAG란?
+- Airflow 에서의 작은 실행 단위인 Task 의 모음이며, 각 Task 를 의존성을 가진 그래프로 표현한 것
+- 복잡한 의존성 관리가 가능
+- backfill(과거부터 채우는 작업), 중간 실패 지점부터 다시 시작할 수 있는 등의 다양한 기능을 제공함
+- execution_date 이라는 특정 시점을 기준으로 잡을 실행
+- schedule_interval 이라는 cron 표현식으로 스케줄링(https://airflow.apache.org/docs/apache-airflow/stable/dag-run.html)
+- DAG 이름이 DAG id 이며 유일해야 함
+
+
 ### 최대 동작 작업수 설정
 - max_active_runs
   - 동시 실행 DAG 수
