@@ -18,3 +18,26 @@
   - hobby not in('낚시', null) 는 무조건 동작하지 않음
     - (hobby<>'낚시' and hobby<>null) 로 변환됨
     - hobby<>null 은 무조건 false 리턴되므로 (null에 <>를 사용할 수 없으므로) 무조건 false
+
+### NOT IN 에서 "Cartesian products are disabled for safety reasons" 에러가 발생할 경우
+- 원인: NOT IN은 모든 결과물을 N*M 으로 조인한 뒤 체크하기 때문에 hive에서 strict 모드일 경우 오류가 발생
+- 해결 방법
+  - 설정 변경: set hive.mapred.mode=nonstrict;
+  - NOT IN -> EXCEPT 로 변경 (hive에서는 동작하지 않음)
+```sql
+SELECT ProductID   
+FROM Production.Product  
+EXCEPT  
+SELECT ProductID   
+FROM Production.WorkOrder
+;  
+```
+  - NOT IN -> LEFT OUTER JOIN + 조인키에 대한 IS NULL 체크
+```sql
+SELECT a.ProductID   
+FROM Production.Product a
+LEFT OUTER JOIN Production.WorkOrder b
+ON a.ProductID = b.ProductID
+WHERE b.ProductID IS NULL
+;
+```
