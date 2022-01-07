@@ -28,6 +28,13 @@
 - 주의사항
   - 사전 토큰 발급 필요
   - 보안 설정에 따라 별도 플러그인 필요한경우 존재
+- 사용법 (참조: https://velog.io/@owljoa/190731-%EC%9E%84%EC%8B%9C)
+  - 개인 설정에서 API Token Generate 를 수행하여 "개인 인증 Token" 생성
+  - 잡 구성에서 "빌드를 원격으로 유발(예. 스크립트 사용)" 체크 후 Authentication Token의 입력란에 사용할 "JOB Token" 문자열 입력
+    - 개인 인증 토큰과 잡 토큰은 별개
+    - 잡 토큰은 알아서 임의로 만들어 쓰면 됨
+  - 다음 주소로 요청
+    - {젠킨스 서버 URL}/job/{job 이름}/buildWithParameters --user [젠킨스 user id]:[개인 인증 Token] --data token={JOB Token} --data {설정한 매개변수 명}={콤마로 구분한 서버 설정명 리스트}
 
 #### 조상 잡에서 join 구성 
 - 방법: 빌드 후 조치에서 Join-Trigger를 구성하면 자식 잡들이 동작한 뒤 손자 잡으로 조인됨
