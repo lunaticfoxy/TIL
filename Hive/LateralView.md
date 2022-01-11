@@ -33,3 +33,13 @@ from clients c
 lateral view json_tuple(c.client, 'info') v1 as info
 lateral view json_tuble(v1.info,'id','name') v2 as id,name
 ``` 
+
+### json value
+- json object를 파싱하여 값 하나만을 추출하기 위한 함수
+- 사용법: JSON_VALUE({json필드}, '$.json.값.경로.입력') AS 필드명
+```sql
+  JSON_VALUE(jsonCol, '$.info.address.PostCode') AS PostCode,
+```
+- 유의사항
+  - 여러 필드를 파싱해야 할 경우 JSON_TUPLE 보다 느림
+  - 한 필드만 파싱할 경우 JSON_TUPLE 보다 빠름
