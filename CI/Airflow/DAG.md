@@ -39,6 +39,16 @@ with TaskGroup('processing_tasks') as processing_tasks:
 
 task_1 >> processing_tasks >> task_4
 ```
+- 태스크 그룹의 동적 생성도 가능
+  - 단 매번 생성할때마다 별도의 그룹 아이디를 지정해줘야 오류가 발생하지 않음
+```python
+for g_id in range(1,3):
+    with TaskGroup(group_id=f'group{g_id}') as tg1:
+        t1 = DummyOperator(task_id='task1')
+        t2 = DummyOperator(task_id='task2')
+
+        t1 >> t2
+```
 
 
 ### 실패시 재시도 방법
