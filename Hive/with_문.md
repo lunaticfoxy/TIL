@@ -91,3 +91,24 @@ SELECT T1.EMPNO
  WHERE 1=1
 ;
 ```
+
+### 또 다른 방법: TEMPORARY 테이블
+- TEMPORARY 테이블이란?
+  - 현재 세션에서만 사용하는 테이블
+  - 현재 세션이 종료되면 제거되기 때문에 임시 테이블 생성에 사용하면 좋음
+- 사용법: CREATE TEMPORARY TABLE {테이블명} ( ... )
+```sql
+
+CREATE TEMPORARY TABLE DEPT_CNT AS
+SELECT 
+  A.DEPTNO, 
+  MAX(A.DNAME) AS DNAME, 
+  COUNT(B.EMPNO) AS DCNT
+FROM SCOTT.DEPT A
+LEFT OUTER JOIN SCOTT.EMP B
+ON B.DEPTNO = A.DEPTNO
+WHERE 1=1
+GROUP BY A.DEPTNO
+;     
+```
+     
