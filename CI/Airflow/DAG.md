@@ -24,6 +24,8 @@
 ### task group
 - 태스크 여러개를 묶어 하나의 그룹으로 지정 가능
 - 각 task는 group_id가 task_id 앞에 접두사로 붇게 됨
+  - ${group_id}.${task_id} 형태
+  - ex) group_id 가 "test_group", task_id가 "test_task" 일 경우 외부에서 보이는 task_id 는 "test_group.test_task"
 - 그룹 내에선 병렬처리, 그룹 간에는 지정한대로 동작
 ```python
 with TaskGroup('processing_tasks') as processing_tasks:
