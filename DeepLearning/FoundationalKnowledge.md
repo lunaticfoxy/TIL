@@ -16,3 +16,21 @@
 - Bias - Variance Trade off
   - 모델의 복잡도가 Bias - Variance 에 각각 긍정 - 부정적인 영향을 끼침
   - 양쪽을 모두 완벽하게 만족시킬수는 없으니 Bias + Variance가 최소가 되는 지점을 찾아야 함
+
+
+
+### 1x1 Convolution
+- Convolution
+  - 다차원 데이터의 차원 변환 기법
+  - 인접한 데이터에 대해 일정 연산을 수행하여 해당 범위 값에 대한 특성을 찾아냄
+  - 차원 수는 매번 다름
+    - ex) 32x32 사이즈의 이미지가 흑백으로 표현되어 있고 (1차원) 이를 Convolution 한다면
+      - 필터 사이즈 2x2x4 : 32x32x1 -> 31x31x4
+      - 필터 사이즈 3x3x6 : 32x32x1 -> 30x30x6
+    - ex) 32x32 사이즈의 이미지가 RGB로 표현되어 있고 (3차원) 이를 Convolution 한다면
+      - 필터 사이즈 2x2x4 : 32x32x3 -> 31x31x4
+      - 필터 사이즈 3x3x6 : 32x32x3 -> 30x30x6
+      - 차이점은,
+- 1x1 Convolution
+  - 말그대로 
+- 참조: https://medium.com/analytics-vidhya/talented-mr-1x1-comprehensive-look-at-1x1-convolution-in-deep-learning-f6b355825578
