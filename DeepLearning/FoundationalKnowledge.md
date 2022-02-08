@@ -25,12 +25,19 @@
   - 인접한 데이터에 대해 일정 연산을 수행하여 해당 범위 값에 대한 특성을 찾아냄
   - 차원 수는 매번 다름
     - ex) 32x32 사이즈의 이미지가 흑백으로 표현되어 있고 (1차원) 이를 Convolution 한다면
-      - 필터 사이즈 2x2x4 : 32x32x1 -> 31x31x4
-      - 필터 사이즈 3x3x6 : 32x32x1 -> 30x30x6
+      - 필터 사이즈 2x2x1x4 : 32x32x1 -> 31x31x4
+      - 필터 사이즈 3x3x1x6 : 32x32x1 -> 30x30x6
     - ex) 32x32 사이즈의 이미지가 RGB로 표현되어 있고 (3차원) 이를 Convolution 한다면
-      - 필터 사이즈 2x2x4 : 32x32x3 -> 31x31x4
-      - 필터 사이즈 3x3x6 : 32x32x3 -> 30x30x6
-      - 차이점은,
+      - 필터 사이즈 2x2x3x4 : 32x32x3 -> 31x31x4
+      - 필터 사이즈 3x3x3x6 : 32x32x3 -> 30x30x6
 - 1x1 Convolution
-  - 말그대로 
-- 참조: https://medium.com/analytics-vidhya/talented-mr-1x1-comprehensive-look-at-1x1-convolution-in-deep-learning-f6b355825578
+  - 말 그대로 필터 사이즈가 1x1인 convolution 필터를 사용하는것을 의미
+  - 왜 사용할까
+    - 차원 축소 (채널 축소)
+      - axbxn 차원의 데이터를 axbxy 차원의 데이터로 줄일 수 있음
+      - 영상의 경우 채널 정보를 축소하는 형태로 이해 가능
+    - 비선형셩 증가
+      - axbxn 차원의 데이터를 그대로 유지하면서 각 채널의 정보만 비선형적으로 변환
+- 참조
+  - https://medium.com/analytics-vidhya/talented-mr-1x1-comprehensive-look-at-1x1-convolution-in-deep-learning-f6b355825578
+  - https://gaussian37.github.io/dl-dlai-network_in_network/
