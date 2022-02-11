@@ -43,8 +43,8 @@
   - https://gaussian37.github.io/dl-dlai-network_in_network/
 
 
-### Maximum Likelihood (ML) vs Maximum A Posteriori (MAP)
-- ML
+### Maximum Likelihood Estimation (MLE) vs Maximum A Posteriori (MAP)
+- MLE
   - 의미
     - 어떠한 사건 Z가 발생했을때 Z를 발생시킬 가능성이 가장 높은 분포를 탐색
     - 사전 확률의 최대화
@@ -59,7 +59,7 @@
 - 어느쪽이 더 좋을까?
   - 이론상으로는 MAP가 더 좋을 수 밖에 없음
   - P(A|Z) = P(Z|A)*P(A)/P(Z)
-  - 따라서 MAP는 ML을 이미 고려한 뒤 분포가 나타날 확률까지 추가로 고려했다고 이야기 할 수 있다
+  - 따라서 MAP는 MLE를 이미 고려한 뒤 분포가 나타날 확률까지 추가로 고려했다고 이야기 할 수 있다
   - P(A), P(B) 의 차이가 크면 클 수록 MAP가 더 정확해짐
     - 예시에서 남녀 성비가 차이날수록 MAP가 더 정확해진다고 할 수 있음
 - 항상 MAP를 쓰면 될까?
@@ -68,6 +68,13 @@
   - P(A), P(B), P(Z)를 정답에 가깝게 구할 수 있는가? (= 데이터 양이 충분한가?)
     - Yes: MAP 사용
     - No: MAP 사용 불가능
+- 그런데 머신러닝에서는?
+  - 일반적인 Discriminative Model: 주어진 데이터로 가장 잘 설명되는 확률 분포를 탐색 => P(Z|A)
+    - 전체에 대한 확률이 아니므로 조건부 확률
+    - P(A), P(B), P(Z)는 모른다고 할 수 있음
+  - Generative Model: 확률 분포를 통해 데이터 자체를 생성 => P(A|Z)
+    - P(A), P(B), P(Z) 또한 학습을 통해 적절히 찾아갈 수 있음
+    - 다만 데이터 양이 매우 많이 필요
 
 
 
